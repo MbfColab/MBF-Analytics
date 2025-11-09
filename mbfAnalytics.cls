@@ -112,6 +112,9 @@ End Function
 '  symbol ou id = "ORA:FP"  Orange sur bourse de Paris France Paris, ticker Bloomberg
 '  currencyname = "EUR"     Euros
 '
+' Exemple invocation Bloomberg Financial
+'    Call m.bloomberg_financials(sheetname:="Orange Soc", symbol:="ORA:FP", currencyname:="EUR")
+'
 Public Sub bloomberg_financials(Optional ByVal sheetname = "bloomberg_financials", Optional ByVal symbol = "ORA:FP", Optional ByVal currencyname = "EUR")
     
     ' Etat de la connexion Rapide API
@@ -212,7 +215,8 @@ End Sub
 '  from  = "2025-01-01"     date de départ ISO en texte, FR UTC+1
 '  until  = "2025-11-01"     date de fin ISO en texte, FR UTC+1
 '
-' Exemple
+' Exemple invocation  Time Quotes1
+' Call m.real_time_quotes1(sheetname:="Orange Sto", interval:="4hour", symbol:="ORA.PA", fromdt:="2025-06-01", untildt:="2025-11-01")
 '
 Public Sub real_time_quotes1(Optional ByVal sheetname = "real_time_quotes1", Optional ByVal interval = "4hour", Optional ByVal symbol = "ORA.PA", Optional ByVal fromdt = "2025-06-01", Optional ByVal untildt = "2025-11-01")
         
@@ -349,6 +353,4 @@ Public Sub maMethode(Optional ByVal sheetname = " ** maMethode ** ", Optional By
     ' ...
     
 End Sub
-
-
 
