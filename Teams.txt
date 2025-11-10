@@ -9,8 +9,9 @@ Team Mad Market
 - Description : Indicateurs financiers annuel et trimestriels
 
 AAA
-- Agathe
-- Axelle
+- Agathe Echegut
+- Axelle Bouy
+- Tim Hembise
 - Lien API: https://indian-stock-exchange-api2.p.rapidapi.com/stock_forecasts?stock_id=TCS&measure_code=EPS&period_type=Annual&data_type=Actuals&age=Current
 - Description: obtenir les previsions de l'EPS (earning per share)
 
@@ -19,7 +20,6 @@ PNL maker
 - Arnaud Capra
 
 Crabby
-- Tim Hembise
 - Elio Arico
 - Armand Geoffroy
 
