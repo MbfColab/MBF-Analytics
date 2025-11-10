@@ -22,8 +22,8 @@ TUG
 -Quentin Lemesnager
 
 Team Babouskoff
-- Yanis AYIK
-- Pierre-alexandre Vergé Percie-Du-Sert
+- Yanis Ayik
+- Pierre-Alexandre Vergé Percie-Du-Sert
 - Lien API : 
 - Description : 
 
