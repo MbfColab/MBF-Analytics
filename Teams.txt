@@ -53,6 +53,8 @@ Team SA
 Team SantaCruz
 - Valentin Grange
 - Marion Neveu-Perret
+- Lien API : https://rapidapi.com/ousema.frikha/api/forex-factory-scraper1
+- Cette API fournit, pour chaque date, la liste des événements macro-économiques publiés (pays, devise, importance, prévisions, chiffres précédents et réels), permettant d’anticiper l’impact sur la volatilité des marchés.
 
 MNT 
 - Mathieu Touet
