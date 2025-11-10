@@ -34,3 +34,7 @@ Team CAJOE
 Madoff
 - Antoine Tardy
 - Raphaël Reversat-Morel
+
+Team SantaCruz
+- Valentin Grange
+- Marion Neveu-Perret
