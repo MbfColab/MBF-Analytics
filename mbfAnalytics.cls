@@ -1,8 +1,10 @@
+' **************************************************
 ' MBF Analytics
-' Banque de méthodes Données financières en ligne
+' Banque de méthodes de Données financières en ligne
 ' Simple utilisation
 ' Robuste
 ' Personnalisable API Key
+' ***************************************************
 
 
 ' References :  Outils > References
@@ -54,29 +56,12 @@ Public Sub initKey(key As String)
 
 End Sub
 
-' Batterie de test des erreurs possibles du résultat des requêtes
-' ** Evolutive **
-Private Sub testErreur(Optional ByVal resultat As String = "")
-    
-    If resultat Like "*" & "Endpoint * does not exist" & "*" Then status = "Endpoint inconnue"
-    
-    If resultat Like "*" & "Invalid request" & "*" Then status = "Paramètres de requête incohérents"
-
-    If resultat Like "*" & "Wrong * parameter" & "*" Then status = "Paramètres de requête incohérents"
-    
-    ' ajouter ses propres détctions d'erreur ici et signaler l'auteur et l'objectif
-    ' By XXXXX Objet YYYYY
-    ' If resultat Like "*" & "??????" & "*" Then status = "?????"
-    
-
-    If status <> "ok" Then
-        MsgBox "Erreur : " & status & vbCrLf & vbCrLf & resultat, vbCritical, "MBF Analytics"
-        End
-    End If
-
-End Sub
-
+' ------------------------------------------------------------
 ' Fonction de recherche ou création d'une feuille Excel nommée
+' Figée
+' Paramètre
+' - sheetname : nom de la feuille Excel recherchée
+' Retour : objet feuille Excel
 Private Function getOrCreateSheet(ByVal sheetname As String) As Worksheet
     Dim w As Worksheet
     
@@ -101,6 +86,38 @@ End Function
 ' ***********************************************
 ' ***********************************************
 
+' ****************************************************************
+' Batterie de test des erreurs possibles du résultat des requêtes
+' ****************************************************************
+' Paramètre
+' - resultat : le résultat de la requête RapidAPI
+' Retour : MsgBox puis End si une erreur est détectée
+Private Sub testErreur(Optional ByVal resultat As String = "")
+    
+    If resultat Like "*" & "not subscribed * API" & "*" Then status = "Souscription à l'API nécessaire"
+
+    If resultat Like "*" & "Endpoint * does not exist" & "*" Then status = "Endpoint inconnue"
+    
+    If resultat Like "*" & "Invalid request" & "*" Then status = "Paramètres de requête incohérents"
+
+    If resultat Like "*" & "Wrong * parameter" & "*" Then status = "Paramètres de requête incohérents"
+        
+    If resultat Like "*" & "data"":null" & "*" Then status = "Pas de résultats. Vérifier les paramètres"
+    
+    If resultat Like "*" & "have exceeded * quota" & "*" Then status = "Quota de requêtes dépassé."
+    
+    ' ajouter ses propres détctions d'erreur ici et signaler l'auteur et l'objectif
+    ' By XXXXX Objet YYYYY
+    ' If resultat Like "*" & "??? * ???" & "*" Then status = "?????"
+        
+
+    If status <> "ok" Then
+        MsgBox "Erreur : " & status & vbCrLf & vbCrLf & resultat, vbCritical, "MBF Analytics"
+        End
+    End If
+
+End Sub
+
 
 ' *************************************
 ' Composantes financières d'une société
@@ -111,6 +128,8 @@ End Function
 '  sheetname = "bloomberg_financials" nom de la feuille crée
 '  symbol ou id = "ORA:FP"  Orange sur bourse de Paris France Paris, ticker Bloomberg
 '  currencyname = "EUR"     Euros
+' Retour :
+'  feuille excel sheetname
 '
 ' Exemple invocation Bloomberg Financial
 '    Call m.bloomberg_financials(sheetname:="Orange Soc", symbol:="ORA:FP", currencyname:="EUR")
@@ -214,6 +233,8 @@ End Sub
 '  symbol = "ORA.PA"  Orange sur bourse de Paris France Paris, ticker Yahoo Finance
 '  from  = "2025-01-01"     date de départ ISO en texte, FR UTC+1
 '  until  = "2025-11-01"     date de fin ISO en texte, FR UTC+1
+' Retour :
+'  feuille excel sheetname
 '
 ' Exemple invocation  Time Quotes1
 ' Call m.real_time_quotes1(sheetname:="Orange Sto", interval:="4hour", symbol:="ORA.PA", fromdt:="2025-06-01", untildt:="2025-11-01")
@@ -354,9 +375,4 @@ Public Sub maMethode(Optional ByVal sheetname = " ** maMethode ** ", Optional By
     
 End Sub
 
-' *************************************
-' *************************************
-' *** Ajouter ses contributions ici ***
-' *************************************
-' *************************************
 
