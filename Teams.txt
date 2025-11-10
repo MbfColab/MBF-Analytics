@@ -70,5 +70,8 @@ Lien APi : https://yahoo-finance-real-time1.p.rapidapi.com/stock/get-options?sym
 Description : Retourne les informations d'options (calls, puts, dates d'expiration, prix d'exercice etc) pour l'action WOOF en temps réel
 
 L&J
-Lilou Droulers
-Juliette Soucaasse
+- Lilou Droulers
+- Juliette Soucaasse
+Lien API : https://financial-modeling-prep.p.rapidapi.com/v4/score/AAPL 
+Description : obtenir la note financière d'une entreprise, qui est une mesure de sa santé financière globale
+
