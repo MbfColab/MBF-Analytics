@@ -21,4 +21,4 @@ TUG
 
 Team Babouskoff
 - Yanis AYIK
-- Pierre-alexandre Verger
+- Pierre-alexandre Vergé
