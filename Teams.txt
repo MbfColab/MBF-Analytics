@@ -43,6 +43,8 @@ Team CAJOE
 Madoff
 - Antoine Tardy
 - Raphaël Reversat-Morel
+- Lien API : https://rapidapi.com/lrdavocado-O3qmwiGJQwR/api/euribor/playground/apiendpoint_8228b8b1-7d74-4d77-b71d-d12d901de4b5
+- Cotations en continue de l'Euribor à différentes maturités 
 
 Team SA
 - Alissia
