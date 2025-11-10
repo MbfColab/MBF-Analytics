@@ -29,7 +29,7 @@ TUG
 Team Babouskoff
 - Yanis Ayik
 - Pierre-Alexandre Vergé Percie-Du-Sert
-- Lien API : 
+- Lien API : https://stock-sentiment-api.p.rapidapi.com/stock_news_sentiment/
 - Description : 
 
 Team OA
