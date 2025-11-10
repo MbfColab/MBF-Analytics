@@ -43,3 +43,8 @@ MNT
 - Mathieu Touet
 - Noé Zavadil
 - Théo Voronine
+
+TUG
+-Tugdual Pothier
+-Baptiste Napias
+-Quentin Lemesnager
