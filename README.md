@@ -28,9 +28,11 @@ Toutes les méthodes sont :
 - 🔍 **Documentées** avec un lien vers la page officielle de l'API et un exemple fonctionnel
 
 ---
+## ⚙️ Releases
 
+**Télécharger mbdAnalytics.cls**
+[Latest Release](https://github.com/MbfColab/MBF-Analytics/releases/latest)
 ![GitHub release](https://img.shields.io/github/v/release/MbfColab/MBF-Analytics?label=latest)
-
 
 ---
 
