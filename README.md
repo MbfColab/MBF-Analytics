@@ -29,6 +29,11 @@ Toutes les méthodes sont :
 
 ---
 
+![GitHub release](https://img.shields.io/github/v/release/MbfColab/MBF-Analytics?label=latest)
+
+
+---
+
 ## 🚀 Exemple d’utilisation
 
 ```vba
