@@ -31,7 +31,7 @@ Toutes les méthodes sont :
 
 ## 🚀 Exemple d’utilisation
 
-```
+```vba
 Sub test_MBFanalytics()
 
     Dim m As mbfAnalytics
