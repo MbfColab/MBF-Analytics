@@ -3,7 +3,7 @@
 
 ---
 
-## 🧭 Objectif du projet
+## 🚀 Objectif du projet
 
 **MBF Analytics** est un projet collaboratif visant à créer une **classe VBA** regroupant un ensemble de **méthodes financières fiables, simples et vérifiées**, s’appuyant sur des **données issues de RapidAPI**.
 
@@ -22,8 +22,8 @@ Le but est d’offrir une bibliothèque **facile à utiliser** et **robuste**, p
 | 🧾 Historique des cotations | `Call m.real_time_quotes1(sheetname:="Orange Sto", interval:="4hour", symbol:="ORA.PA", fromdt:="2025-06-01", untildt:="2025-11-01")` | Télécharge l'historique récent des cotations |
 
 Toutes les méthodes sont :
-- 🧠 **Simples à utiliser** (appel direct depuis Excel, illustré d'un exemple complet)
-- 🧱 **Robustes** (gestion d’erreurs et d’API incluse)
+- 🔍 **Simples à utiliser** (appel direct depuis Excel, illustré d'un exemple complet)
+- 🔍 **Robustes** (gestion d’erreurs et d’API incluse)
 - 🔍 **Vérifiées par un tiers** avant validation
 - 🔍 **Documentées** avec un lien vers la page officielle de l'API et un exemple fonctionnel
 
