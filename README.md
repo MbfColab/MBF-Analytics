@@ -33,7 +33,7 @@ Toutes les méthodes sont :
 Obtenez la dernière version stable de **MBF-Analytics** :
 
 ### Dernière release
-[MBF-Analytics – Latest Release](https://github.com/MbfColab/MBF-Analytics/releases/tag/Latest)
+[MBF-Analytics](https://github.com/MbfColab/MBF-Analytics/releases/tag/Latest)
 ![Dernière Release](https://img.shields.io/github/v/release/MbfColab/MBF-Analytics?label=latest)
 
 ### Autres releases
