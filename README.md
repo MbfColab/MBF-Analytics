@@ -64,6 +64,9 @@ Sub test_MBFanalytics()
 'test financial data (elio armarnd )
  Call m.cash_flow(sheetname:="cashflow", symbol:="AAPL:NASDAQ", period:="QUARTERLY")
 
+    'Test BabounSkoff Sentiment stock api (Yanis, Pierre-Alexandre, Nicolas)
+    Call m.Sentiment_Stock(sheetname:="Tesla", ticker:="TSLA")
+
 End Sub
 ```
 
