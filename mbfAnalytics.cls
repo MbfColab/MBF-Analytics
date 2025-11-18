@@ -1315,6 +1315,244 @@ Private Sub testErreur(Optional ByVal resultat As String = "")
 
 End Sub
 
+' *************************************
+' Méthode générique à personnaliser
+' *************************************
+' Auteur : Selyana Luximon et Alissia Drici
+' Lien vers la page API : https://rapidapi.com/principalapis/api/currency-conversion-and-exchange-rates/playground/endpoint_01c2f371-2ab0-4e56-98f4-e4f4149e9cfc
+' Params avec valeur d'exemple :
+'  sheetname = " ** currency_extracter** " nom de la feuille crée
+'  params1 = "start_date"
+'  params2 = "end_date"
+'  params3 = "base"
+'  params4 = "symbols"
+' Retour :
+'  résultats formatés sur feuille excel sheetname
+'
+Public Sub currency_extractor(Optional ByVal sheetname = "currency_extracter", Optional ByVal start_date = "2019-01-01", Optional ByVal end_date = "2019-01-03", Optional ByVal base = "USD", Optional ByVal symbols = "EUR%2C%20GBP")
+   
+    ' Parties de la Requête à l'API
+    ' Hote
+    hote = "currency-conversion-and-exchange-rates.p.rapidapi.com"
+    ' Endpoint?Query String avec Paramètres génériques en majuscule
+    epqs = "/timeseries?start_date=START_DATE&end_date=END_DATE&base=BASE&symbols=SYMBOLS" ' avec mot générique pour les paramètres
+   
+    Debug.Print "epqs:", epqs
+    symbols_non_encodee = symbols
+    ' Encodage URL des PARAMS
+    start_date = WorksheetFunction.EncodeURL(start_date)
+    end_date = WorksheetFunction.EncodeURL(end_date)
+    base = WorksheetFunction.EncodeURL(base)
+    symbols = WorksheetFunction.EncodeURL(symbols)
+   
+    ' Etat de la connexion Rapide API
+    Call testErreur
+       
+    ' Intégration des PARAMS dans la Query String
+    epqs = Replace(epqs, "START_DATE", start_date)
+    epqs = Replace(epqs, "END_DATE", end_date)
+    epqs = Replace(epqs, "BASE", base)
+    epqs = Replace(epqs, "SYMBOLS", symbols)
+   
+    Debug.Print "epqs:", epqs
+   
+    u = "https://" & hote & epqs
+   
+    Debug.Print "u:", u
+   
+    hAPI = Array("X-Rapidapi-Key: " & apikey, "X-Rapidapi-Host: " & hote, "Content-Type: Application/json; charset=utf-8")
+   
+   
+    s = h.getHttp(url:=u, headers:=hAPI)
+ 
+    Debug.Print s
+   
+    ' Batterie de test d'erreur sur resultat de la requête
+    Call testErreur(resultat:=s)
+   
+    If status <> "ok" Then
+        MsgBox "Erreur : " & status, vbCritical, "MBF Analytics"
+        Exit Sub
+    End If
+       
+    ' Déchiffrement expression JSON en objet VBA
+   
+    Dim o As Object
+    Set o = JsonConverter.ParseJson(s)
+
+    ' Chargement sur feuille Excel
+   
+    ' recherche feuille Excel ou création feuille
+    Set w = getOrCreateSheet(sheetname)
+   
+    ' Purger la feuille
+    w.Cells.Clear
+   
+    ' Inscrire les paramètres de la requête API
+    w.[A1] = start_date
+    w.[B1] = end_date
+    w.[C1] = base
+    w.[D1] = symbols_non_encodee
+   
+   
+    ' Puis écire toutes les informations sur la feuille w
+    ' ...
+   
+    ' Extraction des données JSON
+    Dim rates As Object, d As Variant, curr As Variant
+    Set rates = o("rates")
+   
+    Dim row As Long, col As Long
+   
+    ' Inscription des en-têtes : Date + chaque symbole
+    w.Cells(3, 1).Value = "Date"
+    col = 2
+    For Each curr In o("rates")(o("rates").Keys()(0)).Keys
+        w.Cells(3, col).Value = curr
+        col = col + 1
+    Next curr
+   
+   
+
+   
+    ' Remplissage du tableau avec les valeurs
+    row = 4
+    Dim valueDate As Variant, valueCurr As Variant
+   
+    For Each d In rates.Keys
+        w.Cells(row, 1).Value = d   ' Date
+       
+        col = 2
+        For Each valueCurr In rates(d).Keys
+            w.Cells(row, col).Value = rates(d)(valueCurr)  ' Valeur du taux
+            col = col + 1
+        Next valueCurr
+       
+        row = row + 1
+    Next d
+   
+    Set t = w.ListObjects.Add(xlSrcRange, w.[A3].CurrentRegion, , xlYes)
+   
+    End
+   
+    ' Mise en forme automatique
+    w.Columns.AutoFit
+    w.Activate
+   
+Dim lastRow As Long, lastCol As Long
+    Dim chartObj As ChartObject
+    Dim chartRange As Range
+   
+    ' Détection des bornes du tableau
+    lastRow = w.Cells(w.Rows.Count, 1).End(xlUp).row
+    lastCol = w.Cells(3, w.Columns.Count).End(xlToLeft).Column
+
+    ' Plage de données du tableau
+    Set chartRange = w.Range(w.Cells(3, 1), w.Cells(lastRow, lastCol))
+   
+    ' Suppression d’un éventuel graphique précédent
+    For Each chartObj In w.ChartObjects
+        chartObj.Delete
+    Next chartObj
+   
+    ' Création du graphique
+   Set chartObj = w.ChartObjects.Add( _
+    Left:=w.Cells(3, 1).Left, _
+    Top:=w.Cells(lastRow + 2, 1).Top, _
+    Width:=600, Height:=350)
+   
+   With chartObj.Chart
+    .ChartType = xlLine
+    .SetSourceData Source:=chartRange
+    .HasTitle = True
+    .ChartTitle.Text = "Évolution des taux"
+
+    .Axes(xlCategory).HasTitle = True
+    .Axes(xlCategory).AxisTitle.Text = "Date"
+    .Axes(xlValue).HasTitle = True
+    .Axes(xlValue).AxisTitle.Text = "Taux"
+
+    ' --- Détection automatique du min et max ---
+    Dim dataRange As Range
+    Dim Ymin As Double, Ymax As Double
+
+    Set dataRange = w.Range(w.Cells(4, 2), w.Cells(lastRow, lastCol))
+
+    Ymin = Application.WorksheetFunction.Min(dataRange)
+    Ymax = Application.WorksheetFunction.Max(dataRange)
+
+    .Axes(xlValue).MinimumScale = Ymin
+    .Axes(xlValue).MaximumScale = Ymax
+
+    .Legend.Position = xlLegendPositionBottom
+    End With
+
+Dim normStartCol As Long
+normStartCol = lastCol + 2   ' on commence 2 colonnes plus loin
+
+' Écrire les en-têtes normalisées
+w.Cells(3, normStartCol).Value = "Date"
+col = normStartCol + 1
+
+For Each curr In o("rates")(o("rates").Keys()(0)).Keys
+    w.Cells(3, col).Value = curr & " (norm)"
+    col = col + 1
+Next curr
+
+' Récupérer les premières valeurs (pour base 100)
+Dim firstValues As Object
+Set firstValues = CreateObject("Scripting.Dictionary")
+
+For Each curr In o("rates")(o("rates").Keys()(0)).Keys
+    firstValues(curr) = rates(o("rates").Keys()(0))(curr)
+Next curr
+
+' Remplir les données normalisées
+row = 4
+For Each d In rates.Keys
+    w.Cells(row, normStartCol).Value = d
+   
+    col = normStartCol + 1
+    For Each curr In firstValues.Keys
+        w.Cells(row, col).Value = (rates(d)(curr) / firstValues(curr)) * 100
+        col = col + 1
+    Next curr
+   
+    row = row + 1
+Next d
+
+
+' -------------------------
+'   SECOND GRAPHIQUE NORMALISE
+' -------------------------
+
+Dim lastColNorm As Long
+lastColNorm = w.Cells(3, w.Columns.Count).End(xlToLeft).Column
+
+Dim chartRangeNorm As Range
+Set chartRangeNorm = w.Range(w.Cells(3, normStartCol), w.Cells(lastRow, lastColNorm))
+
+Dim chartObj2 As ChartObject
+Set chartObj2 = w.ChartObjects.Add( _
+    Left:=w.Cells(3, normStartCol).Left, _
+    Top:=w.Cells(lastRow + 2, normStartCol).Top, _
+    Width:=600, Height:=350)
+
+With chartObj2.Chart
+    .ChartType = xlLine
+    .SetSourceData Source:=chartRangeNorm
+    .HasTitle = True
+    .ChartTitle.Text = "Évolution Normalisée des Taux (Base 100)"
+
+    .Axes(xlCategory).HasTitle = True
+    .Axes(xlCategory).AxisTitle.Text = "Date"
+    .Axes(xlValue).HasTitle = True
+    .Axes(xlValue).AxisTitle.Text = "Indice Base 100"
+
+    .Legend.Position = xlLegendPositionBottom
+End With
+End Sub
+
 
 
 
