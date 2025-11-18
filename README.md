@@ -78,11 +78,9 @@ Sub test_MBFanalytics()
 
   ' Exemple extraction d'options (Phuong-Linh NHU, Agathe CANEL, Vanessa JIN)
     Sub test_MBFanalytics()
-
     Dim m As mbfAnalytics
     Set m = New mbfAnalytics
-    
-    ' Inscrire sa propre clé sinon dépassement de quota
+
     m.initKey "1456eb71e7mshe238a98cab7fd2dp17a004jsn39f15b02097a"
     
    Call m.Options("Options", "NVDA", "en-US", "US")
