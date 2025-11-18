@@ -75,8 +75,9 @@ Sub test_MBFanalytics()
 
  ' Exemple currency extracter (Selyana, Alissia)
    Call m.currency_extractor(sheetname:="currency_extractor", start_date:="2019-01-01", end_date:="2019-06-01", base:="USD", symbols:="EUR, AFN")
-     
 
+  ' Exemple extraction d'options (Phuong-Linh NHU, Agathe CANEL, Vanessa JIN)
+  ' Call m.Options("Options", "NVDA", "en-US", "US")
 
 End Sub
 ```
