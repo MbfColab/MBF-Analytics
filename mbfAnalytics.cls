@@ -555,3 +555,178 @@ End Sub
 
 
 
+
+' *************************************
+' Méthode générique à personnaliser
+' *************************************
+' Auteur : Juliette Soucasse et Lilou Droulers
+' Lien vers la page API : https://rapidapi.com/contact-8Fn44oGJQx/api/financial-modeling-prep/playground/apiendpoint_29b54ea8-a339-4f64-a8e3-e9d4cda91564
+' Params avec valeur d'exemple :
+'  sheetname = "cashflow_statements" nom de la feuille crée
+'  period = "annual"
+'  limit = "50"
+' symbol = "AAPL"
+' Retour :
+'  résultats formatés sur feuille excel sheetname
+'
+Public Sub financial_modeling_prep(Optional ByVal sheetname = "financial_modeling_prep", Optional ByVal period = "annual", Optional ByVal limit = "50", Optional ByVal symbol = "AAPL")
+    
+    ' dictionnaire financier anglais
+    ' amots = Array( ... )
+    
+    amots = Array( _
+        "acquire", "acquired", "accounts", "activities", "amortization", "and", _
+        "available", "based", "benefit", "businesses", "call", "cash", "common", _
+        "compensation", "contract", "customer", "decrease", "deferred", "depletion", _
+        "depreciation", "debt", "dividends", "effect", "equipment", "equivalents", _
+        "expense", "financing", "for", "from", "income", "including", "increase", _
+        "inventories", "investing", "investments", "issuance", "liabilities", _
+        "liability", "long", "loss", "maturities", "net", "noncash", "of", _
+        "operating", "other", "paid", "paper", "payments", "plant", "period", _
+        "prepayments", "proceeds", "property", "provided", "rate", "receivable", _
+        "receivables", "repayments", "repurchase", "restricted", "sale", "sales", _
+        "securities", "share", "symbol", "tax", "taxes", "to", "used", "with", _
+        "withholding" _
+)
+    
+    
+    Dim key As Variant
+    Dim i As Long
+    Dim n As Long
+    Dim p As Long
+    Dim cleOriginale As String
+    
+    
+    ' Parties de la Requête à l'API
+    ' Hote
+    hote = "financial-modeling-prep.p.rapidapi.com"
+    ' Endpoint?Query String avec Paramètres génériques en majuscule
+    epqs = "/v3/cash-flow-statement-as-reported/SYMBOL?period=PERIOD&limit=LIMIT&symbol=SYMBOL" ' avec mot générique pour les paramètres
+    
+    ' Encodage URL des PARAMS
+    symbol = WorksheetFunction.EncodeURL(symbol)
+    period = WorksheetFunction.EncodeURL(period)
+    limit = WorksheetFunction.EncodeURL(limit)
+    
+    ' Etat de la connexion Rapide API
+    Call testErreur
+        
+    ' Intégration des PARAMS dans la Query String
+    epqs = Replace(epqs, "PERIOD", period)
+    epqs = Replace(epqs, "LIMIT", limit)
+    epqs = Replace(epqs, "SYMBOL", symbol)
+        
+    u = "https://" & hote & epqs
+    hAPI = Array("X-Rapidapi-Key: " & apikey, "X-Rapidapi-Host: " & hote, "Content-Type: Application/json; charset=utf-8")
+    
+    s = h.getHttp(url:=u, headers:=hAPI)
+ 
+    Debug.Print s
+    
+    ' Batterie de test d'erreur sur resultat de la requête
+    Call testErreur(resultat:=s)
+    
+    If status <> "ok" Then
+        MsgBox "Erreur : " & status, vbCritical, "MBF Analytics"
+        Exit Sub
+    End If
+        
+    ' Déchiffrement expression JSON en objet VBA
+    
+    Dim o As Object
+    Set o = JsonConverter.ParseJson(s)
+
+
+' Chargement Excel
+    Set w = getOrCreateSheet(sheetname)
+    w.Cells.Clear
+    
+    ' En-têtes paramètres
+    w.[A1] = period
+    w.[B1] = limit
+    w.[C1] = symbol
+    
+    
+    
+    
+    ' --- VOTRE ALGORITHME D'AFFICHAGE ---
+    p = o.Count
+    
+    j = 1
+    Set c = w.[A3]
+    
+    Do
+        k = ""
+        cleOriginale = ""
+        
+        ' Chercher une colonne vide
+        For i = 1 To p
+            If o(i).Count > 0 Then
+                cleOriginale = o(i).Keys()(0)
+                k = cleOriginale
+                Exit For
+            End If
+        Next i
+        
+        
+    If k <> "" Then
+    
+        ' Si k est trouvé, on l'écrit
+
+            ' decoupe k selon dictionnaire
+            ' pour chaque mot t dans amots
+            ' a = split(k, t)
+            ' join( a," " & t & " ")
+
+            ' k = trim(k)
+            ' k =replace(k, "  ", " ")
+            
+            
+            
+            For Each mot In amots
+                ' On découpe la chaine k autour du mot trouvé
+                a = Split(k, mot)
+                
+                ' Si le mot est trouvé (le tableau a plus d'1 élément), on recolle avec des espaces
+                If UBound(a) > 0 Then
+                    k = Join(a, " " & mot & " ")
+                End If
+            Next mot
+            
+            ' Nettoyage final (supprimer les doubles espaces et espaces aux extrémités)
+            k = Trim(k)
+            Do While InStr(k, "  ") > 0
+                k = Replace(k, "  ", " ")
+            Loop
+            
+
+
+            c.Offset(0, j - 1) = k
+            
+            ' Parcourir les dictionnaires
+            For i = 1 To p
+                If o(i).Exists(cleOriginale) Then
+                    Set ce = c.Offset(i, j - 1)
+                    ce.Value = o(i)(cleOriginale)
+                    
+                    If cleOriginale = "date" Then
+                        ce.NumberFormat = "dd mmm yyyy"
+                    Else
+                         ce.NumberFormat = "### ### ### ##0"
+                    End If
+                    
+                    o(i).Remove cleOriginale
+                End If
+            Next i
+            j = j + 1
+    End If
+    
+        
+    Loop Until k = ""
+    
+    Set t = w.ListObjects.Add(xlSrcRange, w.[A3].CurrentRegion, , xlYes)
+    
+End Sub
+
+
+
