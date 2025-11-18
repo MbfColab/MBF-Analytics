@@ -69,6 +69,8 @@ MNT
 - Mathieu Touet
 - Noé Zavadil
 - Théo Voronine
+- Lien API : https://rapidapi.com/belchiorarkad-FqvHs2EDOtP/api/yh-finance-complete/playground/apiendpoint_a03eb200-d01b-4980-b7ca-a3187ef5b0e3
+- Obtenir l'historique journalier de la cotation d'une action sur une période de temps choisie entre le 1 janvier 1970 et 4 jours avant la date actuelle
 
 TUG
 -Tugdual Pothier
