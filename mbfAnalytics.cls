@@ -306,6 +306,182 @@ End Sub
 
 
 
+' *************************************
+' Historique Yahoo Finance
+' *************************************
+' Auteur : Théo, Mathieu, Noé
+' Lien vers la page API : https://rapidapi.com/calvinlo/api/yh-finance-complete
+' Params avec valeur d'exemple :
+'   sheetname = "yhf_historical" nom de la feuille crée
+'   ticker    = "AAPL"           Ticker boursier (ex: AAPL, TSLA, ORA.PA)
+'   sdate     = "2024-01-10"     Date de début (format YYYY-MM-DD)
+'   edate     = "2024-02-16"     Date de fin (format YYYY-MM-DD)
+' Retour
+'   Feuille Excel avec historique de cotation nettoyé et formaté
+Public Sub yhf_historical(Optional ByVal sheetname = "yhf_historical", Optional ByVal ticker = "AAPL", Optional ByVal sdate = "2024-01-10", Optional ByVal edate = "2024-02-16")
+    
+    ' Parties de la Requête à l'API
+    ' Hote
+    hote = "yh-finance-complete.p.rapidapi.com"
+    ' Endpoint?Query String avec Paramètres génériques en majuscule
+    epqs = "/yhfhistorical?ticker=TICKER&sdate=SDATE&edate=EDATE"
+    
+    ' Encodage URL des PARAMS (Optionnel, ticker peut contenir des caractères spéciaux)
+    ' ticker = WorksheetFunction.EncodeURL(ticker)
+    
+    ' Etat de la connexion Rapide API
+    Call testErreur
+        
+    ' Intégration des PARAMS dans la Query String
+    epqs = Replace(epqs, "TICKER", ticker)
+    epqs = Replace(epqs, "SDATE", sdate)
+    epqs = Replace(epqs, "EDATE", edate)
+        
+    u = "https://" & hote & epqs
+    hAPI = Array("X-Rapidapi-Key: " & apikey, "X-Rapidapi-Host: " & hote, "Content-Type: Application/json; charset=utf-8")
+    
+    s = h.getHttp(url:=u, headers:=hAPI)
+ 
+    ' Debug.Print s
+    
+    ' Batterie de test d'erreur sur resultat de la requête
+    Call testErreur(resultat:=s)
+    
+    If status <> "ok" Then
+        MsgBox "Erreur API : " & status, vbCritical, "MBF Analytics"
+        Exit Sub
+    End If
+        
+    ' Déchiffrement expression JSON en objet VBA
+    
+    Dim o As Object
+    Set o = JsonConverter.ParseJson(s)
+
+    ' Vérification qu'il y a des données
+    If o.Count = 0 Then
+        MsgBox "Aucune donnée.", vbExclamation
+        Exit Sub
+    End If
+
+    ' Chargement sur feuille Excel
+    
+    ' recherche feuille Excel ou création feuille
+    Set w = getOrCreateSheet(sheetname)
+    
+    ' Purger la feuille
+    w.Cells.Clear
+    
+    ' Inscrire les informations (Titre et Période)
+    With w.Range("A1")
+        .Value = "Historique : " & ticker
+        .Font.Size = 16
+        .Font.Bold = True
+        .Font.Color = RGB(44, 62, 80)
+    End With
+    w.Range("A2").Value = "Période : " & sdate & " au " & edate
+    
+    
+    ' Variables de dimension
+    Dim n As Long, p As Long
+    n = o.Count
+    p = o(1).Count
+    
+    ' Récupération des clés (en-têtes)
+    Dim keys As Variant
+    keys = o(1).keys()
+    
+    ' Identification de la colonne Date pour le nettoyage
+    Dim colDate As Integer
+    colDate = -1
+    
+    Dim i As Integer
+    For i = 0 To p - 1
+        Dim kName As String
+        kName = LCase(keys(i))
+        ' On repère la colonne qui contient "date"
+        If kName = "date" Or kName = "datetime" Then colDate = i
+    Next i
+    
+    ' Écriture des En-têtes ligne 4
+    w.Cells(4, 1).Resize(1, p).Value = keys
+    
+    ' Écriture des Données avec nettoyage de la date
+    Dim startRow As Long
+    startRow = 5
+    
+    Dim r As Long
+    Dim rowItems As Variant
+    Dim cleanDate As String
+    
+    For r = 1 To n
+        ' Récupère la ligne de données sous forme de tableau (Array)
+        rowItems = o(r).Items()
+        
+        If colDate >= 0 Then
+            cleanDate = CStr(rowItems(colDate))
+            
+           
+            cleanDate = Replace(cleanDate, "T", " ")   ' Remplace le T par un espace
+            cleanDate = Replace(cleanDate, "000Z", "") ' Supprime le 000Z
+          
+            
+            rowItems(colDate) = cleanDate
+        End If
+        
+        ' Écriture de la ligne modifiée dans Excel
+        w.Cells(startRow + r - 1, 1).Resize(1, p).Value = rowItems
+    Next r
+
+
+    
+    Dim tblRange As Range
+    Set tblRange = w.Range(w.Cells(4, 1), w.Cells(startRow + n - 1, p))
+    
+    ' Style En-têtes
+    With w.Range(w.Cells(4, 1), w.Cells(4, p))
+        .Interior.Color = RGB(52, 73, 94)
+        .Font.Color = vbWhite
+        .Font.Bold = True
+        .HorizontalAlignment = xlCenter
+        .Borders.LineStyle = xlContinuous
+        .RowHeight = 25
+    End With
+    
+    ' Bordures du tableau
+    tblRange.Borders.LineStyle = xlContinuous
+    tblRange.Borders.Color = RGB(200, 200, 200)
+    
+    ' Formatage des Nombres et des Dates
+    Dim c As Integer
+    For c = 1 To p
+        ' Index colonne Excel = Index Array + 1
+        
+        ' 1. Formatage DATE
+        If (c - 1) = colDate Then
+            w.Columns(c).NumberFormat = "dd/mm/yyyy hh:mm"
+            w.Columns(c).HorizontalAlignment = xlRight
+        
+        ' 2. Formatage VOLUME (Nombre entier)
+        ElseIf InStr(1, LCase(keys(c - 1)), "volume") > 0 Then
+             w.Columns(c).NumberFormat = "#,##0"
+             
+        ' 3. Formatage PRIX (Décimales)
+        Else
+             w.Columns(c).NumberFormat = "#,##0.00"
+        End If
+    Next c
+    
+    ' Ajustement automatique des largeurs
+    w.UsedRange.Columns.AutoFit
+
+    ' Figer les volets
+    w.Activate
+    ActiveWindow.FreezePanes = False
+    w.Rows("5:5").Select
+    ActiveWindow.FreezePanes = True
+    w.Range("A1").Select
+    
+End Sub
 
 
 ' *************************************
@@ -376,4 +552,5 @@ Public Sub maMethode(Optional ByVal sheetname = " ** maMethode ** ", Optional By
     ' ...
     
 End Sub
+
 
