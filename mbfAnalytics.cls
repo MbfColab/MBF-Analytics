@@ -1556,6 +1556,316 @@ End Sub
 
 
 
+' *************************************
+' Importation d'options  
+' *************************************
+' Auteur : Vanessa JIN, Phuong Linh NHU, Agathe CANEL
+' Lien vers la page API : https://rapidapi.com/3b-data-3b-data-default/api/yahoo-finance-real-time1/playground/apiendpoint_00691d4c-5c21-4972-8560-4c03880ebc7f
+
+' Params avec valeur d'exemple :
+' symbol = "WOOF"
+'  langue = "en-US"
+'  region = "US"
+
+' Retour: Feuille "Options" : infos du sous-jacent + dates d'expiration + tableaux des calls puis des puts
+
+Private Sub testeErreur(Optional ByVal resultat As String = "")
+    
+    If resultat Like "*" & "not subscribed * API" & "*" Then status = "Souscription à l'API necessaire"
+
+    If resultat Like "*" & "Endpoint * does not exist" & "*" Then status = "Endpoint inconnue"
+    
+    If resultat Like "*" & "Invalid request" & "*" Then status = "Parametres de requete incoherents"
+
+    If resultat Like "*" & "Wrong * parameter" & "*" Then status = "Parametres de requete incoherents"
+        
+    If resultat Like "*" & "data"":null" & "*" Then status = "Pas de resultats. Verifier les parametres"
+    
+    If resultat Like "*" & "have exceeded * quota" & "*" Then status = "Quota de requetes depasse."
+    
+    ' ajouter ses propres detections d'erreurs ici et signaler l'auteur et l'objectif
+    ' By XXXXX Objet YYYYY
+    ' If resultat Like "*" & "??? * ???" & "*" Then status = "?????"
+        
+    If status <> "ok" Then
+        MsgBox "Erreur : " & status & vbCrLf & vbCrLf & resultat, vbCritical, "MBF Analytics"
+        End
+    End If
+
+End Sub
+
+
+Public Sub Options(Optional ByVal sheetname = "Options", Optional ByVal symbol = "NVDA", Optional ByVal langue = "en-US", Optional ByVal region = "US")
+    
+    Dim hote As String, epqs As String, u As String
+    Dim hAPI As Variant, s As String
+    Dim o As Object
+    
+
+    ' 1- Parties de la requete l'API
+    ' --------------------------------------------------------------
+    ' Hote RapidAPI
+    hote = "yahoo-finance-real-time1.p.rapidapi.com"
+    ' Endpoint + QueryString generique
+    epqs = "/stock/get-options?symbol=SYMBOL&lang=LANGUE&region=REGION"
+
+
+    ' 2- Encodage URL des parametres utilisateur
+    ' --------------------------------------------------------------
+    symbol = WorksheetFunction.EncodeURL(symbol)
+    langue = WorksheetFunction.EncodeURL(langue)
+    region = WorksheetFunction.EncodeURL(region)
+    
+    
+    ' 3- Integration des parametres dans la Query String + appel HTTP + gestion des erreurs
+    ' --------------------------------------------------------------
+    ' Reinitialise le statut / detecte les erreurs de cle par defaut
+    Call testeErreur
+        
+    ' Integration des PARAMS dans la Query String
+    epqs = Replace(epqs, "SYMBOL", symbol)
+    epqs = Replace(epqs, "LANGUE", langue)
+    epqs = Replace(epqs, "REGION", region)
+    
+    ' URL complete
+    u = "https://" & hote & epqs
+    ' Headers RapidAPI
+    hAPI = Array("X-Rapidapi-Key: " & apikey, "X-Rapidapi-Host: " & hote, "Content-Type: Application/json; charset=utf-8")
+    
+    ' Requete HTTP
+    s = h.getHttp(url:=u, headers:=hAPI)
+
+    ' Affiche la reponse brute dans la fenetre Execution
+    Debug.Print s
+    
+    ' Test d'erreur
+    Call testeErreur(resultat:=s)
+    
+    If status <> "ok" Then
+        MsgBox "Erreur : " & status, vbCritical, "MBF Analytics"
+        Exit Sub
+    End If
+        
+        
+    ' 4 - Dechiffrement expression JSON en objet VBA
+    ' --------------------------------------------------------------
+    Set o = JsonConverter.ParseJson(s)
+    
+    ' Verifier si les variables sont bien ecrites
+    Dim resultCount As Long
+    resultCount = o("optionChain")("result").Count
+    
+    If resultCount = 0 Then
+        Dim msg As String
+        msg = "Parametres invalides detectes :" & vbCrLf
+        msg = msg & "Symbole : " & symbol & vbCrLf
+        msg = msg & "Langue : " & langue & vbCrLf
+        msg = msg & "Region : " & region & vbCrLf
+        msg = msg & vbCrLf & "Verifiez ces valeurs et reessayez."
+        MsgBox msg, vbCritical, "Erreur API Yahoo Finance"
+        Exit Sub
+    End If
+    
+    ' Structure du JSON de l'AP
+    Dim chain As Object, quote As Object
+    Set chain = o("optionChain")("result")(1)
+    Set quote = o("optionChain")("result")(1)("quote")
+
+
+    ' 5 - Création du tableau des informations du sous-jacents
+    ' --------------------------------------------------------------
+
+    Dim wsOptions As Worksheet
+    Set wsOptions = getOrCreateSheet(sheetname)  ' cree ou recupere la feuille
+    wsOptions.Cells.Clear                                          ' purge du contenu
+
+    'Le cas ou l'entreprise choisie par l'utilisateur ne possede pas d'option
+    If chain("options").Count = 0 Then
+        wsOptions.Range("A1").value = "Cette entreprise n'a pas d'option associée"
+        wsOptions.Range("A1").Font.Color = vbRed
+        wsOptions.Range("A1").Font.Bold = True
+    'Le cas ou il y a des options
+    Else
+        ' Ligne d'en-tetes du tableau
+        wsOptions.Range("A1:I1").value = Array("Symbol", "Company", "Exchange", "Currency", "Price", "Change %", "Volume", "Market Cap", "Expiration Dates")
+    
+        ' Mise en forme de l'en-tetes
+        wsOptions.Rows(1).Font.Bold = True
+        wsOptions.Range(wsOptions.Cells(1, 1), wsOptions.Cells(1, 9)).Interior.Color = RGB(230, 230, 230)
+        
+        
+        ' Infos du sous-jacent
+        wsOptions.Cells(2, 1).value = chain("underlyingSymbol")
+        wsOptions.Cells(2, 2).value = quote("longName")
+        wsOptions.Cells(2, 3).value = quote("exchange")
+        wsOptions.Cells(2, 4).value = quote("currency")
+        wsOptions.Cells(2, 5).value = quote("regularMarketPrice")
+        wsOptions.Cells(2, 6).value = quote("regularMarketChangePercent")
+        wsOptions.Cells(2, 7).value = quote("regularMarketVolume")
+        wsOptions.Cells(2, 8).value = quote("marketCap")
+        
+        ' Liste des dates d'expiration en colonne I
+        Dim expDates As Object
+        Dim k As Long, row As Long
+        Set expDates = chain("expirationDates")
+        row = 2
+        ' Conversion en date Excel
+        For k = 1 To expDates.Count
+            wsOptions.Cells(row, 9).value = DateAdd("s", CLng(expDates(k)), #1/1/1970#)
+            row = row + 1
+        Next k
+        ' Mettre la date au bon format
+        wsOptions.Cells(row, 9).NumberFormat = "yyyy-mm-dd"
+        
+        ' Mise en forme rapide
+        With wsOptions
+            .Columns.AutoFit
+            .Cells.HorizontalAlignment = xlCenter
+        End With
+    
+    
+        Dim opt As Object, calls As Object, puts As Object
+        Dim r As Long, i As Long
+        Dim hdr As Variant
+    
+        Set opt = chain("options")(1)
+        
+        Set calls = opt("calls")
+        Set puts = opt("puts")
+     
+        
+    ' 6 - Création du tableau des informations des CALLS
+    ' --------------------------------------------------------------
+        r = row + 2
+        
+        wsOptions.Cells(r, 1).value = "Call"
+        wsOptions.Cells(r, 1).Font.Bold = True
+        
+        ' Noms en-tetes des colonnes
+        Dim headers As Variant
+        Dim c As Long
+
+        headers = Array("Contract Symbol", "Strike", "Currency", "Last Price", "Change", "Percent Change", "Volume", "Bid", "Ask", "Expiration Date", "Last Trade Date", "Implied Volatility")
+
+        For c = LBound(headers) To UBound(headers)
+             wsOptions.Cells(r, c + 1).value = headers(c)
+        Next c
+ 
+        ' Mise en forme de l'en-tete
+        wsOptions.Rows(r).Font.Bold = True
+        wsOptions.Range(wsOptions.Cells(r, 1), wsOptions.Cells(r, UBound(headers) + 1)).Interior.Color = RGB(230, 230, 230)
+        
+        r = r + 1 ' premiere ligne de donnees
+        
+        
+        Dim keysToInclude As Variant
+        keysToInclude = Array("contractSymbol", "strike", "currency", "lastPrice", "change", "percentChange", "volume", "bid", "ask", "expiration", "lastTradeDate", "impliedVolatility")
+        
+        Dim snap As Object
+        Dim key As Variant
+        Dim col As Long
+        Dim found As Variant
+        
+        ' Pour chaque CALL
+        For i = 1 To calls.Count
+            Set snap = calls(i)   ' un seul call
+            col = 1               ' on repart colonne 1 à chaque ligne
+            ' On boucle sur toutes les clés disponibles dans ce CALL
+            For Each key In snap.Keys
+                ' Vérifier si la clé fait partie de keysToInclude
+                On Error Resume Next
+                found = Application.Match(key, keysToInclude, 0)
+                On Error GoTo 0
+                If Not IsError(found) Then
+                    ' Conversion automatique pour les timestamps
+                    If key = "expiration" Or key = "lastTradeDate" Then
+                        wsOptions.Cells(r, col).value = DateAdd("s", CLng(snap(key)), #1/1/1970#)
+                        wsOptions.Cells(r, col).NumberFormat = "yyyy/mm/dd"
+                    ' Format pour l'implied volatility
+                    ElseIf key = "impliedVolatility" Then
+                        wsOptions.Cells(r, col).NumberFormat = "0.00"
+                        wsOptions.Cells(r, col).value = snap(key)
+                    ' Tous les autres champs
+                    Else
+                        wsOptions.Cells(r, col).value = snap(key)
+                    End If
+                    col = col + 1
+                End If
+            Next key
+            ' passer à la prochaine ligne du tableau
+            r = r + 1
+        Next i
+            
+            
+    ' 7 - Création du tableau des informations des PUTS
+    ' --------------------------------------------------------------
+        r = r + 2  ' petite separation visuelle des 2 tableaux
+        wsOptions.Cells(r, 1).value = "Put"
+        wsOptions.Cells(r, 1).Font.Bold = True
+                
+        r = r + 1  ' Ligne des en-tetes (Puts)
+                
+        ' Noms en-tetes des colonnes
+        For c = LBound(headers) To UBound(headers)
+                wsOptions.Cells(r, c + 1).value = headers(c)
+        Next c
+         
+        ' Mise en forme de l'en-tete
+        wsOptions.Rows(r).Font.Bold = True
+        wsOptions.Range(wsOptions.Cells(r, 1), wsOptions.Cells(r, UBound(headers) + 1)).Interior.Color = RGB(230, 230, 230)
+            
+        r = r + 1 ' premiere ligne de donnees
+            
+        
+        Dim snapP As Object
+        Dim keyP As Variant
+        Dim foundP As Variant
+        
+        ' Pour chaque PUT
+        For i = 1 To puts.Count
+                Set snapP = puts(i)   ' un seul call
+                col = 1               ' on repart colonne 1 à chaque ligne
+                ' On boucle sur toutes les clés disponibles dans ce put
+                For Each keyP In snapP.Keys
+                    ' Vérifier si la clé fait partie de keysToInclude
+                    On Error Resume Next
+                    foundP = Application.Match(keyP, keysToInclude, 0)
+                    On Error GoTo 0
+                    If Not IsError(foundP) Then
+                        ' Conversion automatique pour les timestamps
+                        If keyP = "expiration" Or keyP = "lastTradeDate" Then
+                            wsOptions.Cells(r, col).value = DateAdd("s", CLng(snapP(keyP)), #1/1/1970#)
+                            wsOptions.Cells(r, col).NumberFormat = "yyyy/mm/dd"
+                        ' Format pour l'implied volatility
+                        ' ElseIf keyP = "impliedVolatility" Then
+                            wsOptions.Cells(r, col).NumberFormat = "0.00"
+                            wsOptions.Cells(r, col).value = snapP(keyP)
+                        ' Tous les autres champs
+                        Else
+                            wsOptions.Cells(r, col).value = snapP(keyP)
+                        End If
+                        col = col + 1
+                    End If
+                 Next keyP
+                 r = r + 1
+        Next i
+            
+    End If
+    
+    'Mise en forme Options'
+     With wsOptions
+        .Columns.AutoFit
+        .Cells.HorizontalAlignment = xlCenter
+    End With
+      
+End Sub
+
+   
+       
+       
+
+
+
 
 
 
