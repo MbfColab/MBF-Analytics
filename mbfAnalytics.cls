@@ -306,6 +306,78 @@ End Sub
 
 
 
+
+' *************************************
+' Méthode générique à personnaliser
+' *************************************
+' Auteur : ** les auteurs **
+' Lien vers la page API : https://rapidapi.com/...
+' Params avec valeur d'exemple :
+'  sheetname = " ** nom de la méthode ** " nom de la feuille crée
+'  params1 = "exemple1"
+'  params2 = "exemple2"
+' Retour :
+'  résultats formatés sur feuille excel sheetname
+'
+Public Sub maMethode(Optional ByVal sheetname = " ** maMethode ** ", Optional ByVal monparam1 = "exemple1", Optional ByVal monparam2 = "exemple2")
+    
+    ' Parties de la Requête à l'API
+    ' Hote
+    hote = " ** mettre son nom d'hôte ici ** "
+    ' Endpoint?Query String avec Paramètres génériques en majuscule
+    epqs = "/ ** son endpoint ? param1=PARAM1&param2=PARAM2" ' avec mot générique pour les paramètres
+    
+    ' Encodage URL des PARAMS
+    symbol = WorksheetFunction.EncodeURL(symbol)
+    currencyname = WorksheetFunction.EncodeURL(currencyname)
+    
+    ' Etat de la connexion Rapide API
+    Call testErreur
+        
+    ' Intégration des PARAMS dans la Query String
+    epqs = Replace(epqs, "PARAM1", monparam1)
+    epqs = Replace(epqs, "PARAM2", monparam2)
+        
+    u = "https://" & hote & epqs
+    hAPI = Array("X-Rapidapi-Key: " & apikey, "X-Rapidapi-Host: " & hote, "Content-Type: Application/json; charset=utf-8")
+    
+    s = h.getHttp(url:=u, headers:=hAPI)
+ 
+    Debug.Print s
+    
+    ' Batterie de test d'erreur sur resultat de la requête
+    Call testErreur(resultat:=s)
+    
+    If status <> "ok" Then
+        MsgBox "Erreur : " & status, vbCritical, "MBF Analytics"
+        Exit Sub
+    End If
+        
+    ' Déchiffrement expression JSON en objet VBA
+    
+    Dim o As Object
+    Set o = JsonConverter.ParseJson(s)
+
+    ' Chargement sur feuille Excel
+    
+    ' recherche feuille Excel ou création feuille
+    Set w = getOrCreateSheet(sheetname)
+    
+    ' Purger la feuille
+    w.Cells.Clear
+    
+    ' Inscrire les paramètres de la requête API
+    w.[A1] = param1
+    w.[B1] = param2
+    
+    
+    ' Puis écire toutes les informations sur la feuille w
+    ' ...
+    
+End Sub
+
+
+
 ' *************************************
 ' Cotation journalière historique d'une période donnée Yahoo Finance
 ' *************************************
@@ -482,78 +554,6 @@ Public Sub yhf_historical(Optional ByVal sheetname = "yhf_historical", Optional 
     w.Range("A1").Select
     
 End Sub
-
-
-' *************************************
-' Méthode générique à personnaliser
-' *************************************
-' Auteur : ** les auteurs **
-' Lien vers la page API : https://rapidapi.com/...
-' Params avec valeur d'exemple :
-'  sheetname = " ** nom de la méthode ** " nom de la feuille crée
-'  params1 = "exemple1"
-'  params2 = "exemple2"
-' Retour :
-'  résultats formatés sur feuille excel sheetname
-'
-Public Sub maMethode(Optional ByVal sheetname = " ** maMethode ** ", Optional ByVal monparam1 = "exemple1", Optional ByVal monparam2 = "exemple2")
-    
-    ' Parties de la Requête à l'API
-    ' Hote
-    hote = " ** mettre son nom d'hôte ici ** "
-    ' Endpoint?Query String avec Paramètres génériques en majuscule
-    epqs = "/ ** son endpoint ? param1=PARAM1&param2=PARAM2" ' avec mot générique pour les paramètres
-    
-    ' Encodage URL des PARAMS
-    symbol = WorksheetFunction.EncodeURL(symbol)
-    currencyname = WorksheetFunction.EncodeURL(currencyname)
-    
-    ' Etat de la connexion Rapide API
-    Call testErreur
-        
-    ' Intégration des PARAMS dans la Query String
-    epqs = Replace(epqs, "PARAM1", monparam1)
-    epqs = Replace(epqs, "PARAM2", monparam2)
-        
-    u = "https://" & hote & epqs
-    hAPI = Array("X-Rapidapi-Key: " & apikey, "X-Rapidapi-Host: " & hote, "Content-Type: Application/json; charset=utf-8")
-    
-    s = h.getHttp(url:=u, headers:=hAPI)
- 
-    Debug.Print s
-    
-    ' Batterie de test d'erreur sur resultat de la requête
-    Call testErreur(resultat:=s)
-    
-    If status <> "ok" Then
-        MsgBox "Erreur : " & status, vbCritical, "MBF Analytics"
-        Exit Sub
-    End If
-        
-    ' Déchiffrement expression JSON en objet VBA
-    
-    Dim o As Object
-    Set o = JsonConverter.ParseJson(s)
-
-    ' Chargement sur feuille Excel
-    
-    ' recherche feuille Excel ou création feuille
-    Set w = getOrCreateSheet(sheetname)
-    
-    ' Purger la feuille
-    w.Cells.Clear
-    
-    ' Inscrire les paramètres de la requête API
-    w.[A1] = param1
-    w.[B1] = param2
-    
-    
-    ' Puis écire toutes les informations sur la feuille w
-    ' ...
-    
-End Sub
-
-
 
 
 
@@ -1863,6 +1863,7 @@ End Sub
    
        
        
+
 
 
 
