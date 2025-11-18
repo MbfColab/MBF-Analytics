@@ -1160,6 +1160,152 @@ Public Sub CryptoMajors(Optional ByVal sheetname As String = "CryptoMajors ", Op
 End Sub
     
     
+' *************************************
+' Sentiment stock API
+' *************************************
+' Auteur : ** Yanis, Pierre-Alexandre, Nicolas **
+' Lien vers la page API : https://rapidapi.com/kinduvarma/api/stock-sentiment-api/playground/apiendpoint_9b229260-d840-4054-88a1-ec55e893b756
+' Params avec valeur d'exemple :
+'  sheetname = "Sentiment_Result" nom de la feuille excel
+'  ticker = "TSLA" symbol de l'action
+' Retour :
+'  résultats formatés sur feuille excel Sentiment_result
+'
+Public Sub Sentiment_Stock(Optional ByVal sheetname = "Sentiment_Resut", Optional ByVal ticker = "TSLA")
+    
+    ' Parties de la Requête à l'API
+    ' Hote
+    hote = "stock-sentiment-api.p.rapidapi.com"
+    ' Endpoint?Query String avec Paramètres génériques en majuscule
+    epqs = "/stock_news_sentiment/?ticker=TICKER" ' avec mot générique pour les paramètres
+    
+    ' Encodage URL des PARAMS
+    ticker = WorksheetFunction.EncodeURL(ticker)
+    
+    ' Etat de la connexion Rapide API
+    Call testErreur
+        
+    ' Intégration des PARAMS dans la Query String
+    epqs = Replace(epqs, "TICKER", ticker)
+        
+    u = "https://" & hote & epqs
+    
+    hAPI = Array("X-Rapidapi-Key: " & apikey, "X-Rapidapi-Host: " & hote, "Content-Type: Application/json; charset=utf-8")
+    
+    s = h.getHttp(url:=u, headers:=hAPI)
+ 
+    Debug.Print s
+    
+    ' Batterie de test d'erreur sur resultat de la requête
+    Call testErreur(resultat:=s)
+    
+    If status <> "ok" Then
+        MsgBox "Erreur : " & status, vbCritical, "MBF Analytics"
+        Exit Sub
+    End If
+        
+    ' Déchiffrement expression JSON en objet VBA
+    
+    Dim o As Object
+    Set o = JsonConverter.ParseJson(s)
+    
+    ' recherche feuille Excel ou création feuille
+    Set w = getOrCreateSheet(sheetname)
+    
+    ' Purger la feuille
+    w.Cells.Clear
+    
+
+   ' Inscrire les paramètres de la requête API
+    w.[A1] = "Ticker"
+    w.[B1] = ticker
+    w.Range("A1:B1").Borders.LineStyle = xlContinuous
+    
+    n = o.Count     ' nombre de lignes
+    p = o(1).Count  ' nombre de colonnes
+    
+    ' Puis écire toutes les informations sur la feuille w
+
+    w.[A3].Resize(1, p) = o(1).Keys()
+    For k = 1 To n
+        w.[A4].Rows(k).Resize(1, p) = o(k).Items()
+    Next k
+    
+    ' Ajouter les https manquant
+    
+    Set rg = Range("D4:D103")
+    For Each cell In rg
+    If Not (cell.Value Like "http*") Then
+        cell.Value = "https://finviz.com" & cell.Value
+    End If
+    Next cell
+    
+    ' Faire la moyenne/max/min des notes de sentiments
+    
+    Set rg = Range("E4:E103")
+    Moyenne = WorksheetFunction.Average(rg)
+    Max = WorksheetFunction.Max(rg)
+    Min = WorksheetFunction.Min(rg)
+    w.[H3].Value = "Moyenne"
+    w.[H4].Value = Moyenne
+    w.[I3].Value = "Maximum"
+    w.[I4].Value = Max
+    w.[J3].Value = "Minimum"
+    w.[J4].Value = Min
+    w.Range("H3:J4").Borders.LineStyle = xlContinuous
+    
+    
+    
+    ' mettre sous forme de tableau
+    Set rg = Range("A3:E103")
+    w.ListObjects.Add(xlSrcRange, rg, , xlYes).Name = "Tableau_sentiment"
+    
+    ' Ajustement des colonnes automatique
+    w.UsedRange.Columns.AutoFit
+    
+    
+    
+
+      
+End Sub
+
+
+' ****************************************************************
+' Batterie de test des erreurs possibles du résultat des requêtes BabounSkoff
+' ****************************************************************
+' Paramètre
+' - resultat : le résultat de la requête RapidAPI
+' Retour : MsgBox puis End si une erreur est détectée
+Private Sub testErreur(Optional ByVal resultat As String = "")
+
+    If resultat Like "*" & "Enter an appropriate ticker" & "*" Then status = "Serveur API k.o."
+    
+    If resultat Like "*" & "not subscribed * API" & "*" Then status = "Souscription à l'API nécessaire"
+
+    If resultat Like "*" & "Endpoint * does not exist" & "*" Then status = "Endpoint inconnue"
+    
+    If resultat Like "*" & "Invalid request" & "*" Then status = "Paramètres de requête incohérents"
+
+    If resultat Like "*" & "Wrong * parameter" & "*" Then status = "Paramètres de requête incohérents"
+        
+    If resultat Like "*" & "data"":null" & "*" Then status = "Pas de résultats. Vérifier les paramètres"
+    
+    If resultat Like "*" & "have exceeded * quota" & "*" Then status = "Quota de requêtes dépassé."
+    
+    ' ajouter ses propres détctions d'erreur ici et signaler l'auteur et l'objectif
+    ' By XXXXX Objet YYYYY
+    ' If resultat Like "*" & "??? * ???" & "*" Then status = "?????"
+        
+
+    If status <> "ok" Then
+        MsgBox "Erreur : " & status & vbCrLf & vbCrLf & resultat, vbCritical, "MBF Analytics"
+        End
+    End If
+
+End Sub
+
+
+
 
 
 
