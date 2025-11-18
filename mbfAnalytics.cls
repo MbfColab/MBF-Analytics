@@ -730,3 +730,173 @@ End Sub
 
 
 
+' *************************************
+' Composantes financières d'une société
+' *************************************
+' Auteur : Elio Arico et Armand Geffroy
+' Lien page API : https://rapidapi.com/letscrape-6bRBa3QguO5/api/real-time-finance-data/playground/endpoint_0ad54c53-f027-44ec-addd-5908aa6ea55c?env=undefined
+' Params avec valeur d'exemple :
+'  sheetname = "financialdata" nom de la feuille crée
+'  symbol ou id = "AAPL:NASDAQ"  Apple sur la bourse du NASDAQ
+'  period = "quarterly" Trimestriel et "annual" Annuel
+' Retour :
+'  résultats formatés sur feuille excel sheetname
+'
+' Exemple invocation financialdata
+'    Call m.cash_flow(sheetname:="cash_flow", symbol:="AAPL:NASDAQ", period:="quarterly")
+'
+Public Sub cash_flow(Optional ByVal sheetname = "cashflow", Optional ByVal symbol = "AAPL:NASDAQ", Optional ByVal period = "quarterly")
+    
+Dim key As Variant
+Dim i As Long
+Dim n As Long
+Dim p As Long
+      
+    
+    ' Etat de la connexion Rapide API
+    Call testErreur
+    
+    ' Parties de la Requête de l'API avec mot générique pour les paramètres
+    hote = "real-time-finance-data.p.rapidapi.com"
+    epqs = "/company-cash-flow?symbol=SYMBOL&period=PERIOD"
+    
+    
+    ' Encodage URL des PARAMS
+    symbol = WorksheetFunction.EncodeURL(symbol)
+    period = WorksheetFunction.EncodeURL(period)
+    
+    ' Intégration des PARAMS dans la Query String
+    epqs = Replace(epqs, "SYMBOL", symbol)
+    epqs = Replace(epqs, "PERIOD", period)
+        
+    u = "https://" & hote & epqs
+    hAPI = Array("X-RapidAPI-Key: " & apikey, "X-RapidAPI-Host: " & hote, "Content-Type: Application/json; charset=utf-8")
+    
+    s = h.getHttp(url:=u, headers:=hAPI)
+ 
+    Debug.Print s
+    
+    ' Batterie de test d'erreur sur resultat de la requête
+    Call testErreur(resultat:=s)
+    
+    If status <> "ok" Then
+        MsgBox "Erreur : " & status, vbCritical, "MBF Analytics"
+        Exit Sub
+    End If
+        
+    ' Déchiffrement expression JSON en objet VBA
+    
+    Dim o As Object
+    Set o = JsonConverter.ParseJson(s)
+
+    ' Chargement sur feuille Excel
+    
+    ' recherche feuille Excel ou création feuille
+    Set w = getOrCreateSheet(sheetname)
+    
+    ' Purger la feuille
+    w.Cells.Clear
+    
+    ' Inscrire les paramètres de la requête API
+    w.[A1] = "Symbol"
+    w.[A2] = "Period"
+    w.[D1] = "Currency"
+    
+    
+    w.[B1] = "AAPL:NASDAQ"
+    w.[B2] = "Quarterly"
+    w.[E1] = "USD"
+    
+
+    'Boucle pour obtenir les donnés
+
+    n = 5                                       ' ligne de départ
+    
+    Dim StartColumn As Long
+    StartColumn = 1                     'colonne de départ
+
+    Set o2 = o("data")("cash_flow")
+
+        For i = 1 To o2.Count
+        
+            p = StartColumn
+            For Each key In o2(i).Keys()
+            
+                w.[a4].Columns(p) = NomPropre(key)
+                w.Cells(n, p).Value = o2(i)(key) 'valeur de la cellule ligne n colonne p
+                p = p + 1
+            
+            Next key
+    
+        n = n + 1
+    
+    Next i
+             
+    'Mise en gras des titres
+    
+    Range("A1:A2").Font.Bold = True
+    Range("D1").Font.Bold = True
+    Range("A4:K4").Font.Bold = True
+    
+    Dim lastRow As Long, lastCol As Long
+    Dim lo As ListObject
+
+    ' Calculer la dernière ligne et colonne
+    
+    lastRow = w.Cells(w.Rows.Count, "A").End(xlUp).Row
+    lastCol = w.Cells(4, w.Columns.Count).End(xlToLeft).Column
+
+    ' Supprimer l'ancien tableau si il existe
+    
+    On Error Resume Next
+    For Each lo In w.ListObjects
+        lo.Delete
+    Next lo
+    On Error GoTo 0
+
+    ' Créer un tableau propre
+    
+    Set lo = w.ListObjects.Add( _
+    SourceType:=xlSrcRange, _
+    Source:=w.Range(w.Cells(4, 1), w.Cells(lastRow, lastCol)), _
+    XlListObjectHasHeaders:=xlYes)
+
+    ' Nom du tableau
+    
+    lo.Name = "tblCashFlow"
+
+    ' Ajustement des colonnes automatique
+    w.UsedRange.Columns.AutoFit
+        
+End Sub
+    Function NomPropre(ByVal txt As String) As String
+    Dim mots() As String
+    Dim i As Long
+
+    ' Remplacer les underscores par des espaces
+    txt = Replace(txt, "_", " ")
+
+    ' Mettre tout en minuscules pour uniformiser
+    txt = LCase(txt)
+
+    ' Découper en mots
+    mots = Split(txt, " ")
+
+    ' Capitaliser chaque mot
+    For i = LBound(mots) To UBound(mots)
+        If Len(mots(i)) > 0 Then
+            mots(i) = UCase(Left(mots(i), 1)) & Mid(mots(i), 2)
+        End If
+    Next i
+
+    ' Reconstituer la chaîne
+    NomPropre = Join(mots, " ")
+    End Function
+
+
+
+
+
+
+
+
