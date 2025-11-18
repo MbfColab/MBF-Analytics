@@ -70,7 +70,7 @@ Sub test_MBFanalytics()
     'Test BabounSkoff Sentiment stock api (Yanis, Pierre-Alexandre, Nicolas)
     Call m.Sentiment_Stock(sheetname:="Tesla", ticker:="TSLA")
 
-  ' Exemple invocation Bloomberg Financial
+  ' Exemple invocation Bloomberg Financial ( quentin, baptiste, kyan, tugdual)
     Call m.CryptoMajors(sheetname:="Vide", limit:=10)
     
 
