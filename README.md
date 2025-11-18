@@ -60,6 +60,10 @@ Sub test_MBFanalytics()
 
     'Test Yahou finance historical (Théo, Mathieu, Noé)
     Call m.yhf_historical(sheetname:="TSLA Hist", ticker:="TSLA", sdate:="2024-01-01", edate:="2024-12-31")
+
+'test financial data (elio armarnd )
+ Call m.cash_flow(sheetname:="cashflow", symbol:="AAPL:NASDAQ", period:="QUARTERLY")
+
 End Sub
 ```
 
