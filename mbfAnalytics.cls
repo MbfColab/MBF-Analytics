@@ -414,7 +414,7 @@ Public Sub yhf_historical(Optional ByVal sheetname = "yhf_historical", Optional 
     
     s = h.getHttp(url:=u, headers:=hAPI)
  
-    ' Debug.Print s
+    Debug.Print s
     
     ' Batterie de test d'erreur sur resultat de la requête
     Call testErreur(resultat:=s)
@@ -1863,6 +1863,7 @@ End Sub
    
        
        
+
 
 
 
