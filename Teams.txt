@@ -42,6 +42,8 @@ Team Babouskoff
 Team OA
 - Ornnella Creignou
 - Anouck Nabec 
+- Lien API : https://rapidapi.com/belchiorarkad-FqvHs2EDOtP/api/yh-finance-complete/playground/apiendpoint_a03eb200-d01b-4980-b7ca-a3187ef5b0e3?env=undefined
+- Description : Return the history of a public stock for a given period
 
 Team CAJOE
 - Alya
