@@ -48,6 +48,8 @@ Team OA
 Team CAJOE
 - Alya
 - Juliette M
+- Lien API : https://rapidapi.com/alphawave/api/financial-statements/playground/apiendpoint_b4be9cff-500e-4f64-a5a9-a8d73f9cde7a
+- Description : Met en forme un compte de résultat - afin d'obtenir des données claires/lisibles. 
 
 Madoff
 - Antoine Tardy
