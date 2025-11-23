@@ -87,6 +87,15 @@ Sub test_MBFanalytics()
 
 End Sub
 
+' *************************************
+' Exemple invocation EPS Estimates (Agathe, Axelle, Tim)
+Dim m As mbfAnalytics
+Set m = New mbfAnalytics
+
+m.initKey "824872f2efmsh8323132c5b25c0fp103ebejsnc541d1c7fc57"
+
+Call m.EPS_Estimates("EPS_Estimates", "TCS", "EPS", "Annual", "Estimates", "Current")
+' *************************************
 
 End Sub
 ```
