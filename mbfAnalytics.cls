@@ -1570,19 +1570,7 @@ End Sub
 
 ' Retour: Feuille "Options" : infos du sous-jacent + dates d'expiration + tableaux des calls puis des puts
 
-    
-    ' ajouter ses propres detections d'erreurs ici et signaler l'auteur et l'objectif
-    ' By XXXXX Objet YYYYY
-    ' If resultat Like "*" & "??? * ???" & "*" Then status = "?????"
         
-    If status <> "ok" Then
-        MsgBox "Erreur : " & status & vbCrLf & vbCrLf & resultat, vbCritical, "MBF Analytics"
-        End
-    End If
-
-End Sub
-
-
 Public Sub Options(Optional ByVal sheetname = "Options", Optional ByVal symbol = "NVDA", Optional ByVal langue = "en-US", Optional ByVal region = "US")
     
     Dim hote As String, epqs As String, u As String
@@ -2643,6 +2631,7 @@ End Sub
 'GMT-10' 'Honolulu'
 'GMT-11' 'NiuÈ'
 'GMT-12' 'Baker Island'"
+
 
 
 
