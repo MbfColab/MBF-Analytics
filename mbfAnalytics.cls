@@ -110,7 +110,39 @@ Private Sub testErreur(Optional ByVal resultat As String = "")
     ' By XXXXX Objet YYYYY
     ' If resultat Like "*" & "??? * ???" & "*" Then status = "?????"
 
+
+
+' BY Valentin Grange & Marion Neveu-Perret
+' Erreur liées au serveur indisponible
+    If resultat Like "*" & "code: 500" & "*" Then status = "Serveur indisponible"
     
+    ' Erreurs liÈes ‡ líauthentification
+If resultat Like "*" & "401 Unauthorized*" & "*" Then status = "API Key non valide ou expirÈe"
+If resultat Like "*" & "403 Forbidden*" & "*" Then status = "AccËs refusÈ : permissions insuffisantes"
+
+' Erreurs de format ou de syntaxe
+If resultat Like "*" & "400 Bad Request*" & "*" Then status = "RequÍte mal formÈe ou paramËtre invalide"
+If resultat Like "*" & "invalid date*" & "*" Then status = "ParamËtre date invalide"
+
+' Erreurs liÈes ‡ la limite de requÍtes
+If resultat Like "*" & "rate limit exceeded*" & "*" Then status = "Limite de requÍtes atteinte. Attendez avant de relancer"
+If resultat Like "*" & "429 Too Many Requests*" & "*" Then status = "Trop de requÍtes envoyÈes en peu de temps"
+
+' Erreurs liÈes aux donnÈes manquantes
+If resultat Like "*" & "No data found*" & "*" Then status = "Aucune donnÈe disponible pour ces paramËtres"
+If resultat Like "*" & "data not available*" & "*" Then status = "DonnÈes non disponibles pour ce pays ou cette pÈriode"
+
+' Erreurs serveur
+If resultat Like "*" & "502 Bad Gateway*" & "*" Then status = "Erreur serveur temporaire (502)"
+If resultat Like "*" & "503 Service Unavailable*" & "*" Then status = "Service temporairement indisponible (503)"
+If resultat Like "*" & "504 Gateway Timeout*" & "*" Then status = "DÈlai d'attente dÈpassÈ, serveur lent (504)"
+
+' Cas spÈcifiques RapidAPI
+If resultat Like "*" & "You have reached your subscription limit*" & "*" Then status = "Limite de souscription RapidAPI atteinte"
+If resultat Like "*" & "API key missing*" & "*" Then status = "ClÈ API manquante ou non transmise"
+
+
+
 
     If status <> "ok" Then
         MsgBox "Erreur : " & status & vbCrLf & vbCrLf & resultat, vbCritical, "MBF Analytics"
@@ -2543,6 +2575,7 @@ End Sub
 'GMT-10' 'Honolulu'
 'GMT-11' 'NiuÈ'
 'GMT-12' 'Baker Island'"
+
 
 
 
