@@ -1841,94 +1841,6 @@ End Sub
        
 
 
-' **************************************************
-' MBF Analytics
-' Banque de mÈthodes de DonnÈes financiËres en ligne
-' Simple utilisation
-' Robuste
-' Personnalisable API Key
-' ***************************************************
-
-
-' References :  Outils > References
-' 1- Microsoft HTML Object Library
-' 2- Microsoft WinHTTP Services, version 5.1
-
-' Classe
-' 1- Webtool
-' 2- Dictionnary
-
-
-' Constantes des la classe
-Private Const keylen As Integer = 50
-
-' PropriÈtÈs de la classe
-Private apikey As String    ' code perso pour se connecter ‡ Rapid API
-Private h As Object         ' h objet pour les requÍtes HTTP
-Public status As String     ' Ètat de la connection avec Rapid API :
-                            ' ok : tout va bien
-                            ' API Key invalide : problËme de clÈ API
-                            ' Compte ÈpuisÈ : plus de requÍtes possible
-                            ' ParamËtres de requÍte incohÈrents : Invalid request
-                            ' Endpoint Inconnue : Endpoint * does not exist
-                            ' Erreur non reconnue
-                            
-
-' ******************
-' MÈthodes Internes
-' ******************
-' Constructeur de la classe
-Private Sub Class_Initialize()
-    Set h = New WebTool
-    status = "ok"
-End Sub
-
-Public Sub initKey(key As String)
-    
-    apikey = Trim(key)
-    
-    If Len(apikey) <> keylen Then
-        status = "API Key invalide"
-        MsgBox "Erreur : " & status, vbCritical, "MBF Analytics"
-        End
-    Else
-        status = "ok"
-    End If
-        
-    Set h = New WebTool
-
-End Sub
-
-' ------------------------------------------------------------
-' Fonction de recherche ou crÈation d'une feuille Excel nommÈe
-' FigÈe
-' ParamËtre
-' - sheetname : nom de la feuille Excel recherchÈe
-' Retour : objet feuille Excel
-Private Function getOrCreateSheet(ByVal sheetname As String) As Worksheet
-    Dim w As Worksheet
-    
-    Set w = Nothing
-    
-    For Each w In Worksheets
-        If w.Name = sheetname Then Exit For
-    Next w
-    
-    If w Is Nothing Then
-        Set w = Worksheets.Add
-        w.Name = sheetname
-    End If
-
-    Set getOrCreateSheet = w
-End Function
-
-
-' ***********************************************
-' ***********************************************
-' Collection de MÈthodes financiËres de la classe
-' ***********************************************
-' ***********************************************
-
 ' ****************************************************************
 ' Batterie de test des erreurs possibles du rÈsultat des requÍtes
 ' ****************************************************************
@@ -1993,7 +1905,7 @@ End Sub
 
 
 ' *************************************
-' MÈthode gÈnÈrique ‡ personnaliser -> Calendrier Èconomique via API
+' Calendrier Èconomique via API
 ' *************************************
 ' Auteur : Valentin Grange & Marion Neveu-Perret
 ' Lien vers la page API : https://rapidapi.com/yasimpratama88/api/economic-calendar-api
@@ -2631,6 +2543,7 @@ End Sub
 'GMT-10' 'Honolulu'
 'GMT-11' 'NiuÈ'
 'GMT-12' 'Baker Island'"
+
 
 
 
