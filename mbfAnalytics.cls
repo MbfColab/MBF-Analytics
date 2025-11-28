@@ -109,7 +109,8 @@ Private Sub testErreur(Optional ByVal resultat As String = "")
     ' ajouter ses propres détctions d'erreur ici et signaler l'auteur et l'objectif
     ' By XXXXX Objet YYYYY
     ' If resultat Like "*" & "??? * ???" & "*" Then status = "?????"
-        
+
+    
 
     If status <> "ok" Then
         MsgBox "Erreur : " & status & vbCrLf & vbCrLf & resultat, vbCritical, "MBF Analytics"
@@ -1569,19 +1570,6 @@ End Sub
 
 ' Retour: Feuille "Options" : infos du sous-jacent + dates d'expiration + tableaux des calls puis des puts
 
-Private Sub testeErreur(Optional ByVal resultat As String = "")
-    
-    If resultat Like "*" & "not subscribed * API" & "*" Then status = "Souscription à l'API necessaire"
-
-    If resultat Like "*" & "Endpoint * does not exist" & "*" Then status = "Endpoint inconnue"
-    
-    If resultat Like "*" & "Invalid request" & "*" Then status = "Parametres de requete incoherents"
-
-    If resultat Like "*" & "Wrong * parameter" & "*" Then status = "Parametres de requete incoherents"
-        
-    If resultat Like "*" & "data"":null" & "*" Then status = "Pas de resultats. Verifier les parametres"
-    
-    If resultat Like "*" & "have exceeded * quota" & "*" Then status = "Quota de requetes depasse."
     
     ' ajouter ses propres detections d'erreurs ici et signaler l'auteur et l'objectif
     ' By XXXXX Objet YYYYY
@@ -1620,7 +1608,7 @@ Public Sub Options(Optional ByVal sheetname = "Options", Optional ByVal symbol =
     ' 3- Integration des parametres dans la Query String + appel HTTP + gestion des erreurs
     ' --------------------------------------------------------------
     ' Reinitialise le statut / detecte les erreurs de cle par defaut
-    Call testeErreur
+    Call testErreur
         
     ' Integration des PARAMS dans la Query String
     epqs = Replace(epqs, "SYMBOL", symbol)
@@ -1639,7 +1627,7 @@ Public Sub Options(Optional ByVal sheetname = "Options", Optional ByVal symbol =
     Debug.Print s
     
     ' Test d'erreur
-    Call testeErreur(resultat:=s)
+    Call testErreur(resultat:=s)
     
     If status <> "ok" Then
         MsgBox "Erreur : " & status, vbCritical, "MBF Analytics"
@@ -2655,6 +2643,7 @@ End Sub
 'GMT-10' 'Honolulu'
 'GMT-11' 'NiuÈ'
 'GMT-12' 'Baker Island'"
+
 
 
 
