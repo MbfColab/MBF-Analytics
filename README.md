@@ -79,6 +79,10 @@ Sub test_MBFanalytics()
   ' Exemple extraction d'options (Phuong-Linh NHU, Agathe CANEL, Vanessa JIN)
     Call m.Options("Options", "NVDA", "en-US", "US")
 
+' Exemple MacroCalendar(Valentin Grange, Marion Neveu Perret)
+  Call m.MacroCalendar("Calendrier", "2025-11-17", "2025-11-23", "US", "GMT+1", "NONE", "500")
+
+
 End Sub
 
 
