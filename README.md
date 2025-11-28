@@ -77,12 +77,6 @@ Sub test_MBFanalytics()
    Call m.currency_extractor(sheetname:="currency_extractor", start_date:="2019-01-01", end_date:="2019-06-01", base:="USD", symbols:="EUR, AFN")
 
   ' Exemple extraction d'options (Phuong-Linh NHU, Agathe CANEL, Vanessa JIN)
-    Sub test_MBFanalytics()
-    Dim m As mbfAnalytics
-    Set m = New mbfAnalytics
-
-    m.initKey "1456eb71e7mshe238a98cab7fd2dp17a004jsn39f15b02097a"
-    
     Call m.Options("Options", "NVDA", "en-US", "US")
 
 End Sub
