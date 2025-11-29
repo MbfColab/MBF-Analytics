@@ -80,7 +80,7 @@ Sub test_MBFanalytics()
     Call m.Options("Options", "NVDA", "en-US", "US")
 
 ' Exemple MacroCalendar(Valentin Grange, Marion Neveu Perret)
-  Call m.MacroCalendar("Calendrier", "2025-11-17", "2025-11-23", "US", "GMT+1", "NONE", "500")
+  Call m.MacroCalendar(sheetname:="Calendrier", startDate:="2025-11-17", endDate:="2025-11-23", countryCode:="US", timezone:="GMT+1", volatility:="NONE", limit:="500")
 
 
 End Sub
