@@ -141,6 +141,15 @@ If resultat Like "*" & "504 Gateway Timeout*" & "*" Then status = "DÈlai d'atte
 If resultat Like "*" & "You have reached your subscription limit*" & "*" Then status = "Limite de souscription RapidAPI atteinte"
 If resultat Like "*" & "API key missing*" & "*" Then status = "ClÈ API manquante ou non transmise"
 
+' By Mathieu Touet, Théo Voronine and Noé Zavadil
+    If resultat Like "*" & "No data found" & "*" Then status = "Pouvez-vous écrire le nom de l'entreprise comme sur Yahoo Finance"
+    
+    If resultat Like "*" & "Parameter=period1 has an invalid type" & "*" Then status = "Pouvez-vous écrire la date de début comme suivant : YYYY-MM-DD "
+    
+    If resultat Like "*" & "Parameter=period2 has an invalid type" & "*" Then status = "Pouvez-vous écrire la date de fin comme suivant : YYYY-MM-DD"
+    
+    If resultat Like "*" & "start date cannot be after end date" & "*" Then status = "Pouvez-vous écrire la date de début en premier et la date de fin en deuxième"
+
 
 
 
@@ -2511,6 +2520,7 @@ End Sub
 'GMT-10' 'Honolulu'
 'GMT-11' 'NiuÈ'
 'GMT-12' 'Baker Island'"
+
 
 
 
