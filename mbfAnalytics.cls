@@ -154,6 +154,7 @@ If resultat Like "*" & "API key missing*" & "*" Then status = "ClÈ API manquant
     
     If resultat Like "*" & "start date cannot be after end date" & "*" Then status = "Pouvez-vous écrire la date de début en premier et la date de fin en deuxième"
 
+    If resultat Like "*" & "Stock Data doesn't exist" & "*" Then status = "Aucune donnée de bourse disponible pour cette période."
 
 
 
@@ -2474,6 +2475,7 @@ End Sub
 'GMT-10' 'Honolulu'
 'GMT-11' 'NiuÈ'
 'GMT-12' 'Baker Island'"
+
 
 
 
