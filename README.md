@@ -85,6 +85,12 @@ Sub test_MBFanalytics()
 'Exemple YH Historical (Ornella Creignou, Anouck Nabec)
     Call m.YH_Historical(sheetname:="TSLA_HIST_TEST", ticker:="TSLA", sdate:="2024-01-10", edate:="2024-02-16")
 
+' Exemple invocation test_EPS_Estimate (Agathe Echegut, Axelle Bouy, Tim Hembise)
+    Call m.EPS_Estimates("EPS_Estimates", "TCS", "EPS", "Annual", "Estimates", "Current")
+
+End Sub
+
+
 End Sub
 
 
