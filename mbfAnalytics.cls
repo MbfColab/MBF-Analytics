@@ -93,7 +93,7 @@ End Function
 ' - resultat : le résultat de la requête RapidAPI
 ' Retour : MsgBox puis End si une erreur est détectée
 Private Sub testErreur(Optional ByVal resultat As String = "")
-    
+
     If resultat Like "*" & "not subscribed * API" & "*" Then status = "Souscription à l'API nécessaire"
 
     If resultat Like "*" & "Endpoint * does not exist" & "*" Then status = "Endpoint inconnue"
@@ -115,6 +115,10 @@ Private Sub testErreur(Optional ByVal resultat As String = "")
 ' BY Valentin Grange & Marion Neveu-Perret
 ' Erreur liées au serveur indisponible
     If resultat Like "*" & "code: 500" & "*" Then status = "Serveur indisponible"
+
+' Par Yanis, Pierre-Alexandre et Nicolas
+' Erreur lié au serveur de l'API
+    If resultat Like "*" & "Enter an appropriate ticker" & "*" Then status = "Serveur API k.o."
     
     ' Erreurs liÈes ‡ líauthentification
 If resultat Like "*" & "401 Unauthorized*" & "*" Then status = "API Key non valide ou expirÈe"
@@ -1292,22 +1296,7 @@ Public Sub Sentiment_Stock(Optional ByVal sheetname = "Sentiment_Resut", Optiona
         cell.Value = "https://finviz.com" & cell.Value
     End If
     Next cell
-    
-    ' Faire la moyenne/max/min des notes de sentiments
-    
-    Set rg = Range("E4:E103")
-    Moyenne = WorksheetFunction.Average(rg)
-    Max = WorksheetFunction.Max(rg)
-    Min = WorksheetFunction.Min(rg)
-    w.[H3].Value = "Moyenne"
-    w.[H4].Value = Moyenne
-    w.[I3].Value = "Maximum"
-    w.[I4].Value = Max
-    w.[J3].Value = "Minimum"
-    w.[J4].Value = Min
-    w.Range("H3:J4").Borders.LineStyle = xlContinuous
-    
-    
+
     
     ' mettre sous forme de tableau
     Set rg = Range("A3:E103")
@@ -1316,46 +1305,11 @@ Public Sub Sentiment_Stock(Optional ByVal sheetname = "Sentiment_Resut", Optiona
     ' Ajustement des colonnes automatique
     w.UsedRange.Columns.AutoFit
     
-    
-    
-
       
 End Sub
 
 
 ' ****************************************************************
-' Batterie de test des erreurs possibles du résultat des requêtes BabounSkoff
-' ****************************************************************
-' Paramètre
-' - resultat : le résultat de la requête RapidAPI
-' Retour : MsgBox puis End si une erreur est détectée
-Private Sub testErreur(Optional ByVal resultat As String = "")
-
-    If resultat Like "*" & "Enter an appropriate ticker" & "*" Then status = "Serveur API k.o."
-    
-    If resultat Like "*" & "not subscribed * API" & "*" Then status = "Souscription à l'API nécessaire"
-
-    If resultat Like "*" & "Endpoint * does not exist" & "*" Then status = "Endpoint inconnue"
-    
-    If resultat Like "*" & "Invalid request" & "*" Then status = "Paramètres de requête incohérents"
-
-    If resultat Like "*" & "Wrong * parameter" & "*" Then status = "Paramètres de requête incohérents"
-        
-    If resultat Like "*" & "data"":null" & "*" Then status = "Pas de résultats. Vérifier les paramètres"
-    
-    If resultat Like "*" & "have exceeded * quota" & "*" Then status = "Quota de requêtes dépassé."
-    
-    ' ajouter ses propres détctions d'erreur ici et signaler l'auteur et l'objectif
-    ' By XXXXX Objet YYYYY
-    ' If resultat Like "*" & "??? * ???" & "*" Then status = "?????"
-        
-
-    If status <> "ok" Then
-        MsgBox "Erreur : " & status & vbCrLf & vbCrLf & resultat, vbCritical, "MBF Analytics"
-        End
-    End If
-
-End Sub
 
 ' *************************************
 ' Méthode générique à personnaliser
@@ -2520,6 +2474,7 @@ End Sub
 'GMT-10' 'Honolulu'
 'GMT-11' 'NiuÈ'
 'GMT-12' 'Baker Island'"
+
 
 
 
