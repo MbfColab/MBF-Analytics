@@ -81,6 +81,8 @@ Sub test_MBFanalytics()
 
 ' Exemple MacroCalendar(Valentin Grange, Marion Neveu Perret)
   Call m.MacroCalendar(sheetname:="Calendrier", startDate:="2025-11-17", endDate:="2025-11-23", countryCode:="US", timezone:="GMT+1", volatility:="NONE", limit:="500")
+ 'Exemple insider_reporting (Alexandre Castagna, Louis Simon De Grimaudet De Rochebouët, Arnaud Capra)
+    Call m.insider_reporting(sheetname:="NVDA insiders", symbol:="NVDA")
 
 'Exemple YH Historical (Ornella Creignou, Anouck Nabec)
     Call m.YH_Historical(sheetname:="TSLA_HIST_TEST", ticker:="TSLA", sdate:="2024-01-10", edate:="2024-02-16")
