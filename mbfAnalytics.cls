@@ -2728,6 +2728,668 @@ End Sub
 'GMT-12' 'Baker Island'"
 
 
+' *************************************
+' liste de tous les potentiels délits d'initié pour un ticker donné
+' *************************************
+' Auteur : Alexandre Castagna, Louis Simon De Grimaudet De Rochebouët, Arnaud Capra
+' Lien vers la page API : https://rapidapi.com/hpats/api/insiders/playground/apiendpoint_acd9b9c5-45c9-431b-b852-1258ad5cf751
+' Params avec valeur d'exemple :
+'  sheetname = " insider_reporting " nom de la feuille crée
+'  symbol = "NVDA" ticker de yahoo finance
+' Retour:
+'    résultats formatés sur feuille excel sheetname
+'
+' Exemple invocation insider_reporting
+' Call m.insider_reporting(sheetname:="NVDA insiders", symbol:="NVDA")
+
+Public Sub insider_reporting(Optional ByVal sheetname = "insider_reporting", Optional ByVal symbol = "NVDA")
+    
+    ' Parties de la Requête à l'API
+    ' Hote
+    hote = "insiders.p.rapidapi.com"
+    
+   
+    
+    ' Endpoint?Query String avec Paramètres génériques en majuscule
+    epqs = "/gedetailedtinsiders/SYMBOL" ' avec mot générique pour les paramètres
+    
+  
+    
+    ' Encodage URL des PARAMS
+    symbol = WorksheetFunction.EncodeURL(symbol)
+   
+    
+    ' Etat de la connexion Rapide API
+    Call testErreur
+        
+    ' Intégration des PARAMS dans la Query String
+    epqs = Replace(epqs, "SYMBOL", symbol)
+    
+    u = "https://" & hote & epqs
+    
+    hAPI = Array("X-Rapidapi-Key: " & apikey, "X-Rapidapi-Host: " & hote, "Content-Type: Application/json; charset=utf-8")
+    
+    
+    s = h.getHttp(url:=u, headers:=hAPI)
+    
+    
+    ' Batterie de test d'erreur sur resultat de la requête
+    Call testErreur(resultat:=s)
+    
+    If status <> "ok" Then
+        MsgBox "Erreur : " & status, vbCritical, "MBF Analytics"
+        Exit Sub
+    End If
+        
+    ' Déchiffrement expression JSON en objet VBA
+    
+    Dim o As Object
+    Set o = JsonConverter.ParseJson(s)
+
+
+    ' Chargement sur feuille Excel
+    
+    ' recherche feuille Excel ou création feuille
+    Set w = getOrCreateSheet(sheetname)
+    
+    ' Purger la feuille
+    w.Cells.Clear
+    
+    ' Inscrire les paramètres de la requête API
+    w.[A3] = symbol
+    
+    
+    ' Puis écrire toutes les informations sur la feuille w
+
+    ' Introduction sur l'API:
+    '       Cette API présente 3 tableaux : Reporting Owner (RO), Non derivative transactions (TS1) et Derivative transactions (TS2)
+    '       Le nombre de clefs de chaque tableau est variable
+    '       Le nombre de valeurs pour chaque clef est aussi varibale sauf dans RO, car à chaque "report" est associée une seule personne, mais peut contenir plusieurs sous transactions
+    '       (La plus grande partie de ce code est dédiée à remédier à ce problème)
+    '       Cette API fait aussi usage de structures très particulières (par exemple des Objects qui ne sont ni des dictionnaires, ni des collections, ni des arrays, mais qui existent bel est bien)
+    '       (ceci résulte en des tests d'existence fastidieux)
+    '
+    
+    ' Le Code :
+    '
+    '      Initialisation de tous les Objects, Tableaux, Variables Long, Variables Variant, Variables Booléens, Dictionnaires temporaires et Paramètres Internes
+    '       (il y en a plus dans le code, mais ils doivent être initialisés dans la boucle pour que ca fonctionne)
+    '      On détermine le nombre de "insideTransactions", auquelles sont associée au plus un owner
+    '           TITRES NON-VARIABLES
+    '      Début de boucle principale : pour chaque reporting du ticker
+    '           SECTION 1: REPORTING OWNER
+    '               GESTION DES CLÉS MANQUANTES POUR RO
+    '           SECTION 2: NON-DERIVATIVE SECURITIES
+    '               GESTION DES CLÉS MANQUANTES POUR TS1
+    '           SECTION 3: DERIVATIVE SECURITIES
+    '               GESTION DES CLÉS MANQUANTES POUR TS2
+    '           ÉCRITURE DES DONNÉES POUR CE REPORTING
+    '           SUPPRESSION DES COLONNES DE BUFFER
+    '           FORMATAGE EN TABLEAU EXCEL
+    
+    
+    
+        'toutes ces initialisations ne sont pas énumérées de manière plus compacte parce que le code arrête de fonctionner sur certains ordi
+        
+    ' Objects
+    Dim rep As Object
+    
+    
+    ' Tableaux
+    Dim arraykeys1 As Variant
+    Dim arraykeys2 As Variant
+    Dim arraykeys3 As Variant
+    Dim arraykeys1_less As Variant
+    Dim arraykeys2_less As Variant
+    Dim arraykeys3_less As Variant
+    Dim arrKeys As Variant
+    Dim arrItems As Variant
+    
+    ' Variables Long
+    Dim maxkeys1 As Long
+    maxkeys1 = 0
+    Dim maxkeys2 As Long
+    maxkeys2 = 0
+    Dim maxkeys3 As Long
+    maxkeys3 = 0
+    Dim keys1 As Long
+    Dim keys2 As Long
+    Dim keys3 As Long
+    Dim items1 As Long
+    Dim items2 As Long
+    Dim items3 As Long
+    Dim LigneTotal As Long
+    LigneTotal = 2  ' Commence à la ligne 3 (2 lignes de headers)
+    Dim k As Long
+    Dim i As Long
+    Dim j As Long
+    Dim currentRow As Long
+    Dim numTransactions As Long
+    Dim currentBuffer1 As Long
+    Dim currentBuffer2 As Long
+    Dim keysAdded1 As Long
+    Dim keysAdded2 As Long
+    Dim keysAdded3 As Long
+    
+    ' Variables Variant
+    Dim key As Variant
+    Dim key1 As Variant
+    Dim key2 As Variant
+    Dim key1_less As Variant
+    Dim key2_less As Variant
+    Dim item As Variant
+    Dim ROItem As Variant
+    Dim TS1 As Variant
+    Dim TS2 As Variant
+    Dim RO As Variant
+    
+    ' Booléens
+    Dim isEmpty1 As Boolean
+    Dim isEmpty2 As Boolean
+    
+    ' Dictionnaires temporaires
+    Dim TS1_less As Object
+    Dim TS2_less As Object
+    Dim RO_less As Object
+    
+    'Paramètres Internes
+    Const Buffer As Long = 30
+    
+    
+    Dim m As Long
+    If o.Exists("insideTransactions") Then
+        If IsObject(o("insideTransactions")) Then
+            m = o("insideTransactions").Count
+        Else
+            Err.Raise vbObjectError + 1, , "'insideTransactions' n'est pas un objet collection/array"
+        End If
+    Else
+        Err.Raise vbObjectError + 1, , "'insideTransactions' absent"
+    End If
+    
+    
+    
+    
+    '========================================TITRES NON-VARIABLES========================================
+    
+  
+    
+    w.Cells(2, 1) = "Ticker"
+    w.Cells(2, 2) = "periodOfReport"
+    w.Cells(2, 3) = "acceptanceDateTime"
+    
+    '========================================BOUCLE PRINCIPALE========================================
+    
+For k = 1 To m  ' pour tous les reporting du ticker
+
+        Debug.Print vbNewLine & "=== ITÉRATION k=" & k & " ==="
+        
+        ' Récupération du reporting
+        If IsObject(o("insideTransactions")(k)) Then
+            Set rep = o("insideTransactions")(k)
+        Else
+            Err.Raise vbObjectError + 1, , "Item insideTransactions(" & k & ") invalide"
+        End If
+        
+        ' Réinitialisation des compteurs pour ce reporting
+        keys1 = 0
+        keys2 = 0
+        keys3 = 0
+        items1 = 0
+        items2 = 0
+        items3 = 0
+        
+        
+        ' ========================================SECTION 1: REPORTING OWNER========================================
+        
+        If k = 1 Then       'pour que ca ne se répète pas à chaque itération
+            w.Cells(1, 4) = "reportingOwner"
+        End If
+        
+        Set RO = rep("reportingOwner")      'structure répétitive
+        
+        If TypeName(RO) = "Collection" And RO.Count > 0 Then
+            If TypeName(RO(1)) = "Dictionary" Then
+                keys3 = RO(1).Count
+                items3 = 1  ' Un seul owner par transaction
+                
+                
+                ' ========================================GESTION DES CLÉS MANQUANTES POUR RO========================================
+                
+                If keys3 > maxkeys3 Then
+                    ' Nouveau maximum de clés
+                    Dim oldMaxkeys3 As Long
+                    oldMaxkeys3 = maxkeys3
+                    
+                    maxkeys3 = keys3
+                    keysAdded3 = keysAdded3 + (maxkeys3 - oldMaxkeys3)
+                    
+                    arraykeys3 = RO(1).Keys()
+                    w.Cells(2, 4).Resize(1, keys3) = arraykeys3
+                    
+                    Debug.Print "RO: Nouvelles clés ajoutées. maxkeys3: " & oldMaxkeys3 & " -> " & maxkeys3 & " | keysAdded3: " & keysAdded3
+                    
+                ElseIf keys3 < maxkeys3 And maxkeys3 > 0 Then
+                    ' Moins de clés que le maximum : il faut aligner
+                    Debug.Print "RO: keys3=" & keys3 & " < maxkeys3=" & maxkeys3 & " - Alignement nécessaire"
+                    
+                    Dim currentRoKeys As Variant
+                    currentRoKeys = RO(1).Keys()
+                    
+                    ' Créer un nouveau dictionnaire aligné avec toutes les clés
+                    Dim RO_aligned As Object
+                    Dim RO_newCollection As Collection
+                    Set RO_aligned = New Dictionary
+                    
+                    ' Parcourir toutes les clés du maximum (arraykeys3) en utilisant un index
+                    Dim keyStr As String
+                    Dim keyValue As Variant
+                    
+                    For idx = LBound(arraykeys3) To UBound(arraykeys3)
+                        keyStr = CStr(arraykeys3(idx))
+                        Debug.Print "  Traitement clé: " & keyStr
+                        
+                        ' Vérifier si cette clé existe dans le RO actuel
+                        On Error Resume Next
+                        keyValue = Empty
+                        If RO(1).Exists(keyStr) Then
+                            keyValue = RO(1)(keyStr)
+                            If Err.Number = 0 Then
+                                RO_aligned.Add keyStr, keyValue
+                                Debug.Print "    -> Valeur trouvée: " & keyValue
+                            Else
+                                RO_aligned.Add keyStr, "Na"
+                                Debug.Print "    -> Erreur lecture, ajout Na"
+                                Err.Clear
+                            End If
+                        Else
+                            ' Clé manquante : ajouter "Na"
+                            RO_aligned.Add keyStr, "Na"
+                            Debug.Print "    -> Clé manquante, ajout Na"
+                        End If
+                        On Error GoTo 0
+                    Next idx
+                    
+                    ' Créer une nouvelle Collection avec le dictionnaire aligné
+                 
+                    Set RO_newCollection = New Collection
+                    RO_newCollection.Add RO_aligned
+                    
+                    ' Remplacer RO par la nouvelle collection
+                    Set RO = RO_newCollection
+                    keys3 = maxkeys3
+                    Debug.Print "RO aligné avec succès"
+                    
+                ElseIf keys3 = maxkeys3 And maxkeys3 > 0 Then
+                    ' Même nombre de clés, mais vérifier l'ordre
+                    currentRoKeys = RO(1).Keys()
+                    
+                    ' Vérifier si les clés sont dans le même ordre
+                    Dim needsReordering As Boolean
+                    needsReordering = False
+                    
+                    For idx = LBound(arraykeys3) To UBound(arraykeys3)
+                        If idx <= UBound(currentRoKeys) Then
+                            If CStr(arraykeys3(idx)) <> CStr(currentRoKeys(idx)) Then
+                                needsReordering = True
+                                Exit For
+                            End If
+                        End If
+                    Next idx
+                    
+                    ' Si l'ordre est différent, réordonner
+                    If needsReordering Then
+                        Debug.Print "RO: Même nombre de clés mais ordre différent - Réorganisation"
+                        
+                        Set RO_aligned = New Dictionary
+                        
+                        For idx = LBound(arraykeys3) To UBound(arraykeys3)
+                            keyStr = CStr(arraykeys3(idx))
+                            
+                            On Error Resume Next
+                            If RO(1).Exists(keyStr) Then
+                                keyValue = RO(1)(keyStr)
+                                If Err.Number = 0 Then
+                                    RO_aligned.Add keyStr, keyValue
+                                Else
+                                    RO_aligned.Add keyStr, "Na"
+                                    Err.Clear
+                                End If
+                            Else
+                                RO_aligned.Add keyStr, "Na"
+                            End If
+                            On Error GoTo 0
+                        Next idx
+                        
+                        ' Créer une nouvelle Collection avec le dictionnaire réorganisé
+                        Set RO_newCollection = New Collection
+                        RO_newCollection.Add RO_aligned
+                        Set RO = RO_newCollection
+                        Debug.Print "RO réorganisé avec succès"
+                    End If
+                End If
+            End If
+        End If
+        
+        
+        ' ========================================SECTION 2: NON-DERIVATIVE SECURITIES========================================
+        
+        
+        ' Calculer le buffer dynamique pour TS1
+        currentBuffer1 = Buffer - keysAdded3
+        If currentBuffer1 < 0 Then currentBuffer1 = 0
+        
+        If k = 1 Then
+            w.Cells(1, 4 + maxkeys3 + currentBuffer1) = "Non-Derivative Securities Acquired, Disposed of, or Beneficially Owned"
+        End If
+        
+        Set TS1 = rep("transactions")(1)("transactions")
+        
+        isEmpty1 = True
+        For Each item In TS1
+            isEmpty1 = False
+            Exit For
+        Next item
+        
+        If isEmpty1 = False Then
+            If TypeName(TS1) = "Collection" Then
+                keys1 = TS1(1).Count
+                items1 = TS1.Count
+            ElseIf TypeName(TS1) = "Dictionary" Then
+                arrKeys = TS1.Keys
+                arrItems = TS1.Items
+                keys1 = UBound(arrKeys) + 1
+                items1 = UBound(arrItems) + 1
+            Else
+                Err.Raise vbObjectError + 1, , "TS1 type non géré: " & TypeName(TS1)
+            End If
+            
+            
+            ' ========================================GESTION DES CLÉS MANQUANTES POUR TS1========================================
+            
+            If keys1 > maxkeys1 Then
+                Dim oldMaxkeys1 As Long
+                oldMaxkeys1 = maxkeys1
+                
+                maxkeys1 = keys1
+                keysAdded1 = keysAdded1 + (maxkeys1 - oldMaxkeys1)
+                
+                arraykeys1 = TS1(1).Keys()
+                w.Cells(2, 4 + maxkeys3 + currentBuffer1).Resize(1, keys1) = arraykeys1
+                
+                Debug.Print "TS1: Nouvelles clés ajoutées. maxkeys1: " & oldMaxkeys1 & " -> " & maxkeys1 & " | keysAdded1: " & keysAdded1
+                
+            ElseIf keys1 < maxkeys1 And maxkeys1 > 0 Then
+                ' Aligner toutes les transactions de TS1
+                For i = 1 To items1
+                    Dim TS1_aligned As Object
+                    Set TS1_aligned = New Dictionary
+                    
+                    For Each key In arraykeys1
+                        If TS1(i).Exists(key) Then
+                            TS1_aligned.Add key, TS1(i)(key)
+                        Else
+                            TS1_aligned.Add key, "Na"
+                        End If
+                    Next key
+                    
+                    Set TS1(i) = TS1_aligned
+                Next i
+                keys1 = maxkeys1
+            End If
+        End If
+        
+        
+        ' ========================================SECTION 3: DERIVATIVE SECURITIES========================================
+        
+        
+        ' Calculer le buffer dynamique pour TS2
+        currentBuffer2 = Buffer - keysAdded1
+        If currentBuffer2 < 0 Then currentBuffer2 = 0
+        
+        If k = 1 Then
+            w.Cells(1, 4 + maxkeys3 + currentBuffer1 + maxkeys1 + currentBuffer2) = "Derivative Securities Acquired, Disposed of, or Beneficially Owned"
+        End If
+        
+        Set TS2 = rep("transactions")(2)("transactions")
+        
+        isEmpty2 = True
+        For Each item In TS2
+            isEmpty2 = False
+            Exit For
+        Next item
+        
+        If isEmpty2 = False Then
+            If TypeName(TS2) = "Collection" Then
+                keys2 = TS2(1).Count
+                items2 = TS2.Count
+            ElseIf TypeName(TS2) = "Dictionary" Then
+                arrKeys = TS2.Keys
+                arrItems = TS2.Items
+                keys2 = UBound(arrKeys) + 1
+                items2 = UBound(arrItems) + 1
+            Else
+                Err.Raise vbObjectError + 1, , "TS2 type non géré: " & TypeName(TS2)
+            End If
+            
+            
+            ' ========================================GESTION DES CLÉS MANQUANTES POUR TS2========================================
+            
+            If keys2 > maxkeys2 Then
+                Dim oldMaxkeys2 As Long
+                oldMaxkeys2 = maxkeys2
+                
+                maxkeys2 = keys2
+                keysAdded2 = keysAdded2 + (maxkeys2 - oldMaxkeys2)
+                
+                arraykeys2 = TS2(1).Keys()
+                w.Cells(2, 4 + maxkeys3 + currentBuffer1 + maxkeys1 + currentBuffer2).Resize(1, keys2) = arraykeys2
+                
+                Debug.Print "TS2: Nouvelles clés ajoutées. maxkeys2: " & oldMaxkeys2 & " -> " & maxkeys2 & " | keysAdded2: " & keysAdded2
+                
+            ElseIf keys2 < maxkeys2 And maxkeys2 > 0 Then
+                ' Aligner toutes les transactions de TS2
+                For i = 1 To items2
+                    Dim TS2_aligned As Object
+                    Set TS2_aligned = New Dictionary
+                    
+                    For Each key In arraykeys2
+                        If TS2(i).Exists(key) Then
+                            TS2_aligned.Add key, TS2(i)(key)
+                        Else
+                            TS2_aligned.Add key, "Na"
+                        End If
+                    Next key
+                    
+                    Set TS2(i) = TS2_aligned
+                Next i
+                keys2 = maxkeys2
+            End If
+        End If
+        
+        
+        ' ========================================ÉCRITURE DES DONNÉES POUR CE REPORTING========================================
+        
+        
+        ' Calculer le nombre de lignes nécessaires (max des transactions)
+        numTransactions = WorksheetFunction.Max(items1, items2, 1)
+        
+        ' Pour chaque ligne de transaction
+        For i = 1 To numTransactions
+            currentRow = LigneTotal + i
+            
+            ' Colonnes fixes: dates, securityTitle
+            
+            If rep.Exists("periodOfReport") Then
+                w.Cells(currentRow, 2) = rep("periodOfReport")
+            End If
+            
+            If rep.Exists("acceptanceDateTime") Then
+                w.Cells(currentRow, 3) = rep("acceptanceDateTime")
+            End If
+            
+            If rep.Exists("securityTitle") Then
+                w.Cells(currentRow, 4) = rep("securityTitle")
+            End If
+            
+            ' Reporting Owner (MAINTENANT EN PREMIER après les colonnes fixes)
+            If keys3 > 0 Then
+                ' Utiliser arraykeys3 pour garantir l'ordre correct des colonnes
+                For j = LBound(arraykeys3) To UBound(arraykeys3)
+                    keyStr = CStr(arraykeys3(j))
+                    
+                    ' Vérifier si la clé existe dans RO(1)
+                    If RO(1).Exists(keyStr) Then
+                        w.Cells(currentRow, 4 + j).Value = RO(1)(keyStr)
+                    Else
+                        w.Cells(currentRow, 4 + j) = "Na"
+                    End If
+                Next j
+            End If
+            
+            ' Non-Derivative transactions (TS1)
+            If Not isEmpty1 And i <= items1 Then
+                ' Utiliser arraykeys1 pour garantir l'ordre correct
+                For j = LBound(arraykeys1) To UBound(arraykeys1)
+                    keyStr = CStr(arraykeys1(j))
+                    
+                    If TS1(i).Exists(keyStr) Then
+                        w.Cells(currentRow, 4 + maxkeys3 + currentBuffer1 + j).Value = TS1(i)(keyStr)
+                    Else
+                        w.Cells(currentRow, 4 + maxkeys3 + currentBuffer1 + j) = "Na"
+                    End If
+                Next j
+            End If
+            
+            ' Derivative transactions (TS2)
+            If Not isEmpty2 And i <= items2 Then
+                ' Utiliser arraykeys2 pour garantir l'ordre correct
+                For j = LBound(arraykeys2) To UBound(arraykeys2)
+                    keyStr = CStr(arraykeys2(j))
+                    
+                    If TS2(i).Exists(keyStr) Then
+                        w.Cells(currentRow, 4 + maxkeys3 + currentBuffer1 + maxkeys1 + currentBuffer2 + j).Value = TS2(i)(keyStr)
+                    Else
+                        w.Cells(currentRow, 4 + maxkeys3 + currentBuffer1 + maxkeys1 + currentBuffer2 + j) = "Na"
+                    End If
+                Next j
+            End If
+        Next i
+        
+        ' Mise à jour du total de lignes
+        LigneTotal = LigneTotal + numTransactions
+        Debug.Print "LigneTotal=" & LigneTotal
+        
+    Next k
+
+
+
+'========================================SUPPRESSION DES COLONNES DE BUFFER========================================
+
+' Supprimer les colonnes vides entre RO et TS1, puis entre RO+TS1 et TS2
+Application.ScreenUpdating = False
+
+Dim c As Long
+Dim firstColRO As Long, lastColRO As Long
+Dim firstColTS1 As Long, lastColTS1 As Long
+Dim firstColTS2 As Long, lastColTS2 As Long
+Dim maxSearch As Long
+
+maxSearch = 500  ' Pour que le code soit légèrement plus rapide
+
+' les titres de RO commencent à la colonne 4
+firstColRO = 4
+
+' Trouver la dernière cellule non vide à la ligne 2 dans RO
+If Trim(CStr(w.Cells(2, firstColRO).Value)) <> "" Then
+    lastColRO = firstColRO
+    Do While Trim(CStr(w.Cells(2, lastColRO).Value)) <> ""
+        lastColRO = lastColRO + 1
+        If lastColRO > w.Columns.Count Then Exit Do
+    Loop
+    lastColRO = lastColRO - 1
+Else
+    lastColRO = firstColRO - 1
+End If
+
+' Trouver la dernière cellule non vide à la ligne 2 après RO (jusqu'à maxSearch), pour trouver la première colonne de TS1
+firstColTS1 = 0
+For c = lastColRO + 1 To lastColRO + maxSearch
+    If c > w.Columns.Count Then Exit For
+    If Trim(CStr(w.Cells(2, c).Value)) <> "" Then
+        firstColTS1 = c
+        Exit For
+    End If
+Next c
+
+' Supprimer les colonnes entre RO et TS1 s'il y en a
+If firstColTS1 <> 0 And firstColTS1 > lastColRO + 1 Then
+    w.Range(w.Columns(lastColRO + 1), w.Columns(firstColTS1 - 1)).Delete
+End If
+
+' Même chose mais pour l'espace en RO+TS1 et TS2
+
+firstColROTS1 = firstColRO
+'Trouver la dernière cellule non vide à la ligne 2 dans RO + TS1
+If Trim(CStr(w.Cells(2, firstColRO).Value)) <> "" Then
+    lastColROTS1 = firstColROTS1
+    Do While Trim(CStr(w.Cells(2, lastColROTS1).Value)) <> ""
+        lastColROTS1 = lastColROTS1 + 1
+        If lastColROTS1 > w.Columns.Count Then Exit Do
+    Loop
+    lastColROTS1 = lastColROTS1 - 1
+Else
+    lastColROTS1 = firstColROTS1 - 1
+End If
+
+' ' Trouver la dernière cellule non vide à la ligne 2 après RO + TS1 (jusqu'à maxSearch)
+firstColTS2 = 0
+For c = lastColROTS1 + 1 To lastColROTS1 + maxSearch
+    If c > w.Columns.Count Then Exit For
+    If Trim(CStr(w.Cells(2, c).Value)) <> "" Then
+        firstColTS2 = c
+        Exit For
+    End If
+Next c
+
+' Supprimer les colonnes entre RO+TS1 et TS2 s'il y en a
+
+If firstColTS2 <> 0 And firstColTS2 > lastColROTS1 + 1 Then
+    w.Range(w.Columns(lastColROTS1 + 1), w.Columns(firstColTS2 - 1)).Delete
+End If
+
+'========================================FORMATAGE EN TABLEAU EXCEL========================================
+
+' Définir la dernière ligne et la dernière colonne réellement remplies
+Dim lastRow As Long, lastCol As Long
+lastRow = w.Cells(w.Rows.Count, 2).End(xlUp).Row
+lastCol = w.Cells(2, w.Columns.Count).End(xlToLeft).Column
+
+' Définir la zone des données
+Dim dataRange As Range
+Set dataRange = w.Range(w.Cells(2, 2), w.Cells(lastRow, lastCol))
+
+' Allignement dans les cellules
+dataRange.HorizontalAlignment = xlHAlignCenter
+
+' Supprimer tout ancien tableau éventuel
+Dim lo As ListObject
+For Each lo In w.ListObjects
+    lo.Delete
+Next lo
+
+' Créer le tableau
+w.ListObjects.Add(SourceType:=xlSrcRange, Source:=dataRange, _
+    XlListObjectHasHeaders:=xlYes).Name = "InsideTransactions"
+
+' Style du tableau (modifiable)
+w.ListObjects("InsideTransactions").TableStyle = "TableStyleMedium2"
+w.UsedRange.Columns.AutoFit
+
+
+    
+End Sub
+
 
 
 
