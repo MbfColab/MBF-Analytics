@@ -58,41 +58,35 @@ Sub test_MBFanalytics()
     ' Test Real Time Quotes1
     Call m.real_time_quotes1(sheetname:="Orange Sto", interval:="4hour", symbol:="ORA.PA", fromdt:="2025-06-01", untildt:="2025-11-01")
 
-    'Test Yahou finance historical (Théo, Mathieu, Noé)
+    ' Test Yahou finance historical (Théo, Mathieu, Noé)
     Call m.yhf_historical(sheetname:="TSLA Hist", ticker:="TSLA", sdate:="2024-01-01", edate:="2024-12-31")
 
-'test financial data (elio armarnd )
- Call m.cash_flow(sheetname:="cashflow", symbol:="AAPL:NASDAQ", period:="QUARTERLY")
+    ' Test financial data (elio armarnd )
+    Call m.cash_flow(sheetname:="cashflow", symbol:="AAPL:NASDAQ", period:="QUARTERLY")
 
     ' Test invocation Financial Modeling (Lilou, Juliette S)
     Call m.financial_modeling_prep(sheetname:="Cashflow statement", period:="FY", limit:="50", symbol:="AAPL")
 
-    'Test BabounSkoff Sentiment stock api (Yanis, Pierre-Alexandre, Nicolas)
+    ' Test BabounSkoff Sentiment stock api (Yanis, Pierre-Alexandre, Nicolas)
     Call m.Sentiment_Stock(sheetname:="Tesla", ticker:="TSLA")
 
-  ' Exemple invocation Bloomberg Financial ( quentin, baptiste, kyan, tugdual)
+    ' Exemple invocation Bloomberg Financial ( quentin, baptiste, kyan, tugdual)
     Call m.CryptoMajors(sheetname:="Vide", limit:=10)
 
- ' Exemple currency extracter (Selyana, Alissia)
-   Call m.currency_extractor(sheetname:="currency_extractor", start_date:="2019-01-01", end_date:="2019-06-01", base:="USD", symbols:="EUR, AFN")
+    ' Exemple currency extracter (Selyana, Alissia)
+    Call m.currency_extractor(sheetname:="currency_extractor", start_date:="2019-01-01", end_date:="2019-06-01", base:="USD", symbols:="EUR, AFN")
 
-  ' Exemple extraction d'options (Phuong-Linh NHU, Agathe CANEL, Vanessa JIN)
+    ' Exemple extraction d'options (Phuong-Linh NHU, Agathe CANEL, Vanessa JIN)
     Call m.Options("Options", "NVDA", "en-US", "US")
 
-' Exemple MacroCalendar(Valentin Grange, Marion Neveu Perret)
-  Call m.MacroCalendar(sheetname:="Calendrier", startDate:="2025-11-17", endDate:="2025-11-23", countryCode:="US", timezone:="GMT+1", volatility:="NONE", limit:="500")
+    ' Exemple MacroCalendar(Valentin Grange, Marion Neveu Perret)
+    Call m.MacroCalendar(sheetname:="Calendrier", startDate:="2025-11-17", endDate:="2025-11-23", countryCode:="US", timezone:="GMT+1", volatility:="NONE", limit:="500")
 
-'Exemple YH Historical (Ornella Creignou, Anouck Nabec)
+    ' Exemple YH Historical (Ornella Creignou, Anouck Nabec)
     Call m.YH_Historical(sheetname:="TSLA_HIST_TEST", ticker:="TSLA", sdate:="2024-01-10", edate:="2024-02-16")
 
-' Exemple invocation test_EPS_Estimate (Agathe Echegut, Axelle Bouy, Tim Hembise)
+    ' Exemple invocation test_EPS_Estimate (Agathe Echegut, Axelle Bouy, Tim Hembise)
     Call m.EPS_Estimates("EPS_Estimates", "TCS", "EPS", "Annual", "Estimates", "Current")
-
-End Sub
-
-
-End Sub
-
 
 End Sub
 ```
